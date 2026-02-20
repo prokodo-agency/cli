@@ -1,0 +1,89 @@
+name: Bump version
+
+# Manual trigger from the GitHub Actions UI.
+# Pick the bump type → workflow commits the version change, tags it, and
+# pushes — that push triggers release.yml automatically.
+#
+# ⚠  Branch protection: GITHUB_TOKEN can push to main only when
+#    "Allow specified actors to bypass required pull requests" is enabled for
+#    the github-actions[bot]. If not, create a fine-grained PAT (Contents: write)
+#    stored as secret RELEASE_TOKEN and replace `secrets.GITHUB_TOKEN` below.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Semver increment'
+        required: true
+        type: choice
+        options: [patch, minor, major]
+
+jobs:
+  bump:
+    name: Bump ${{ inputs.bump }} → commit → tag → push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push commit + tag
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # full history so git describe finds the previous tag
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - uses: pnpm/action-setup@v4.2.0
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v6.2.0
+        with:
+          node-version: '22'
+
+      # Bump only package.json — we create the commit and tag ourselves below.
+      - name: Bump package.json version
+        id: ver
+        shell: bash
+        run: |
+          NEW_TAG=$(npm version ${{ inputs.bump }} --no-git-tag-version)
+          echo "tag=${NEW_TAG}"       >> "$GITHUB_OUTPUT"
+          echo "version=${NEW_TAG#v}" >> "$GITHUB_OUTPUT"
+
+      # Prepend a new section to CHANGELOG.md with the git log since last tag.
+      - name: Update CHANGELOG.md
+        shell: bash
+        run: |
+          VER="${{ steps.ver.outputs.version }}"
+          TAG="${{ steps.ver.outputs.tag }}"
+          DATE=$(date -u +%Y-%m-%d)
+          REPO="https://github.com/${{ github.repository }}"
+          PREV=$(git describe --tags --abbrev=0 2>/dev/null || true)
+
+          if [ -n "$PREV" ]; then
+            COMPARE_URL="${REPO}/compare/${PREV}...${TAG}"
+            LOG=$(git log "${PREV}..HEAD" --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+          else
+            COMPARE_URL="${REPO}/releases/tag/${TAG}"
+            LOG=$(git log --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+          fi
+
+          [ -z "$LOG" ] && LOG="- Initial release"
+
+          # Insert new entry right after the opening title line of CHANGELOG.md
+          {
+            head -1 CHANGELOG.md
+            printf "\n## [%s](%s) — %s\n\n%s\n" "${VER}" "${COMPARE_URL}" "${DATE}" "${LOG}"
+            tail -n +2 CHANGELOG.md
+          } > CHANGELOG.tmp
+          mv CHANGELOG.tmp CHANGELOG.md
+
+      - name: Commit, tag and push
+        shell: bash
+        run: |
+          git add package.json CHANGELOG.md
+          git commit -m "chore: release ${{ steps.ver.outputs.tag }}"
+          git tag "${{ steps.ver.outputs.tag }}"
+          git push origin HEAD:${{ github.ref_name }} --follow-tags

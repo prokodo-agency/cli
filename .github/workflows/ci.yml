@@ -8,6 +8,16 @@ on:
       - 'src/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - 'tsconfig*.json'
+      - 'tsup.config.ts'
+      - 'eslint.config.*'
+      - '.eslintignore'
+      - '.prettierrc*'
+      - 'prettier.config.*'
+      - '.prettierignore'
+      - 'jest.config.*'
+      - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [main, dev]
@@ -15,6 +25,16 @@ on:
       - 'src/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - 'tsconfig*.json'
+      - 'tsup.config.ts'
+      - 'eslint.config.*'
+      - '.eslintignore'
+      - '.prettierrc*'
+      - 'prettier.config.*'
+      - '.prettierignore'
+      - 'jest.config.*'
+      - 'Dockerfile'
+      - '.dockerignore'
       - '.github/workflows/ci.yml'
   workflow_call: {} # callable from release.yml
 
