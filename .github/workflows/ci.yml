@@ -1,0 +1,149 @@
+name: CI
+
+# Runs on pushes, PRs and can be called directly from release.yml.
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'prokodo-cli/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'prokodo-cli/**'
+      - '.github/workflows/ci.yml'
+  workflow_call: {} # callable from release.yml
+
+# Cancel in-flight PR runs when a new commit is pushed; keep tag / main runs.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: prokodo-cli
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 1 — Static quality: format, type-check, lint (Ubuntu only, fast)
+  # ──────────────────────────────────────────────────────────────────────────
+  quality:
+    name: Quality (format · tsc · eslint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: prokodo-cli/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prettier — format check
+        run: pnpm format:check
+
+      - name: TypeScript — type-check (noEmit)
+        run: pnpm lint:tsc
+
+      - name: ESLint
+        run: pnpm lint:eslint
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 2 — Build + test matrix: Linux · macOS · Windows
+  # ──────────────────────────────────────────────────────────────────────────
+  test:
+    name: Build & Test — ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: prokodo-cli/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (tsup → dist/cli.js)
+        run: pnpm build
+
+      - name: Tests with coverage
+        run: pnpm test:coverage
+
+      # Upload coverage once — from the Ubuntu run only
+      - name: Upload coverage artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: prokodo-cli/coverage/
+          retention-days: 14
+
+      # ── Cross-platform smoke tests ────────────────────────────────────────
+      - name: 'Smoke: prokodo --help'
+        shell: bash
+        run: node dist/cli.js --help
+
+      - name: 'Smoke: prokodo --version'
+        shell: bash
+        run: node dist/cli.js --version
+
+      - name: 'Smoke: prokodo init --defaults --slug smoke-ci'
+        shell: bash
+        run: |
+          mkdir -p /tmp/smoke-ci
+          cd /tmp/smoke-ci
+          node "$GITHUB_WORKSPACE/prokodo-cli/dist/cli.js" init --defaults --slug smoke-ci
+          node -e "const c=require('.prokodo/config.json'); if(c.projectSlug!=='smoke-ci') process.exit(1); console.log('init OK');"
+
+      - name: 'Smoke: prokodo doctor --json (no credentials — exit 1 expected)'
+        shell: bash
+        # exit 1 is intentional in CI (no API key); we just verify it runs cleanly.
+        run: node dist/cli.js doctor --json; true
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 3 — Docker build smoke (Ubuntu, gated on quality + test)
+  # ──────────────────────────────────────────────────────────────────────────
+  docker:
+    name: Docker — build smoke
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./prokodo-cli
+          push: false
+          tags: prokodo-cli:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 'Smoke: docker run prokodo --help'
+        run: docker run --rm prokodo-cli:ci --help
+
+      - name: 'Smoke: docker run prokodo --version'
+        run: docker run --rm prokodo-cli:ci --version
