@@ -136,7 +136,7 @@ jobs:
       - name: 'Smoke: prokodo doctor --json (no credentials — exit 1 expected)'
         shell: bash
         # exit 1 is intentional in CI (no API key); we just verify it runs cleanly.
-        run: node dist/cli.js doctor --json; true
+        run: node dist/cli.js doctor --json || true
 
   # ──────────────────────────────────────────────────────────────────────────
   # Job 3 — Docker build smoke (Ubuntu, gated on quality + test)
