@@ -11,10 +11,6 @@ permissions:
   packages: write # push to GHCR
   id-token: write # npm provenance attestation
 
-defaults:
-  run:
-    working-directory: prokodo-cli
-
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
   # Job 1 — Re-run the full CI suite on the exact tagged commit
@@ -101,7 +97,7 @@ jobs:
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v3.2.0
         with:
-          subject-path: prokodo-cli/${{ steps.pack.outputs.tarball }}
+          subject-path: ${{ steps.pack.outputs.tarball }}
 
       # Publish using GITHUB_TOKEN — no NPM_TOKEN secret needed.
       # The short-lived token is auto-provisioned by GitHub Actions (OIDC).
@@ -146,7 +142,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6.19.2
         with:
-          context: ./prokodo-cli
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
