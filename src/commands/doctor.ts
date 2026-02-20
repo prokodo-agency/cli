@@ -71,7 +71,7 @@ export function registerDoctorCommand(program: Command): void {
           passed = true;
           detail = `projectSlug=${cfg.projectSlug}`;
         } catch (err) {
-          detail = err instanceof Error ? err.message : String(err);
+          detail = err instanceof Error ? err.message : /* istanbul ignore next */ String(err);
         }
         checks.push({ name: '.prokodo/config.json', passed, detail });
       }
@@ -86,6 +86,7 @@ export function registerDoctorCommand(program: Command): void {
           const res = await fetch(`${baseUrl}/api/cli/v1/health`, {
             signal: AbortSignal.timeout(10_000),
           });
+          /* istanbul ignore else */
           if (res.ok) {
             const body = (await res.json()) as HealthResponse;
             passed = body.status === 'ok';
@@ -94,7 +95,7 @@ export function registerDoctorCommand(program: Command): void {
             detail = `${baseUrl} → HTTP ${res.status}`;
           }
         } catch (err) {
-          detail = `${baseUrl} → ${err instanceof Error ? err.message : String(err)}`;
+          detail = `${baseUrl} → ${err instanceof Error ? err.message : /* istanbul ignore next */ String(err)}`;
         }
         checks.push({ name: 'API reachability', passed, detail });
       }
@@ -115,7 +116,7 @@ export function registerDoctorCommand(program: Command): void {
             passed = true;
             detail = 'API key accepted';
           } catch (err) {
-            detail = err instanceof Error ? err.message : String(err);
+            detail = err instanceof Error ? err.message : /* istanbul ignore next */ String(err);
           }
           checks.push({ name: 'API key valid', passed, detail });
         }

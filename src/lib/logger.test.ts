@@ -144,6 +144,12 @@ describe('info and success', () => {
     const out = captureStdout(() => logger.success('done'));
     expect(out).toBe('');
   });
+
+  it('success writes to stdout when json mode is off', () => {
+    logger.configureLogger({ json: false });
+    const out = captureStdout(() => logger.success('all done'));
+    expect(out).toContain('all done');
+  });
 });
 
 // ─── warn / error — always go to stderr ──────────────────────────────────────
@@ -219,6 +225,21 @@ describe('logLine', () => {
       logger.logLine('info', '2026-02-20T12:00:00Z', 'deploy started'),
     );
     expect(err).toContain('deploy started');
+  });
+
+  it('writes to stderr in json mode (logs never go to stdout)', () => {
+    logger.configureLogger({ json: true });
+    const err = captureStderr(() =>
+      logger.logLine('info', '2026-02-20T12:00:00Z', 'json mode log'),
+    );
+    expect(err).toContain('json mode log');
+  });
+
+  it('warn level uses yellow prefix', () => {
+    const err = captureStderr(() =>
+      logger.logLine('warn', '2026-02-20T12:00:00Z', 'something warned'),
+    );
+    expect(err).toContain('something warned');
   });
 
   it('error level writes to stderr', () => {

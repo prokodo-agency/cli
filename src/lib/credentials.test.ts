@@ -2,131 +2,193 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+// We need to control getConfigDir() to point at a temp directory.
+// jest.mock is hoisted, so we use a variable that the factory closes over.
+let mockConfigDir = '/tmp/prokodo-creds-default';
+
+jest.mock('./platform', () => ({
+  getConfigDir: () => mockConfigDir,
+  isInteractive: jest.fn(() => false),
+  getDefaultApiUrl: jest.fn(() => 'https://test.invalid'),
+}));
+
+import {
+  credentialsPath,
+  loadCredentials,
+  saveCredentials,
+  deleteCredentials,
+} from './credentials';
+
 // ─── credentialsPath ─────────────────────────────────────────────────────────
 
 describe('credentialsPath', () => {
-  const originalDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')!;
-  let savedEnv: NodeJS.ProcessEnv;
-
-  beforeEach(() => {
-    savedEnv = process.env;
+  it('returns a path inside getConfigDir()', () => {
+    mockConfigDir = '/tmp/prokodo-creds-test';
+    jest.resetModules(); // force re-evaluation of credentialsPath on next import
+    // credentialsPath() reads mockConfigDir at call-time via the mocked getConfigDir
+    const p = credentialsPath();
+    expect(p).toContain('prokodo-creds-test');
+    expect(p).toContain('credentials.json');
   });
 
-  afterEach(() => {
-    Object.defineProperty(process, 'platform', originalDescriptor);
-    process.env = savedEnv;
-  });
-
-  it('returns ~/.config/prokodo/credentials.json on non-Windows', () => {
-    Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
-    // Re-require to pick up the fresh process.platform value for credentialsPath
-    jest.resetModules();
-    const { credentialsPath } = jest.requireActual<typeof import('./credentials')>('./credentials');
-    const expected = path.join(os.homedir(), '.config', 'prokodo', 'credentials.json');
-    expect(credentialsPath()).toBe(expected);
-  });
-
-  it('uses %APPDATA% on Windows', () => {
-    Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
-    process.env = { ...savedEnv, APPDATA: 'C:\\Users\\Test\\AppData\\Roaming' };
-    jest.resetModules();
-    const { credentialsPath } = jest.requireActual<typeof import('./credentials')>('./credentials');
-    const result = credentialsPath();
-    expect(result).toContain('prokodo');
-    expect(result).toContain('credentials.json');
+  it('ends with credentials.json', () => {
+    const p = credentialsPath();
+    expect(path.basename(p)).toBe('credentials.json');
   });
 });
 
-// ─── FS-level save / load / delete operations ─────────────────────────────────
+// ─── saveCredentials + loadCredentials round-trip ────────────────────────────
 
-describe('credentials file operations', () => {
-  it('saves and loads credentials in a round-trip', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-creds-'));
-    const credFile = path.join(tmpDir, 'credentials.json');
-    const creds = { apiKey: 'pk_test_abcdefgh1234' };
+describe('saveCredentials + loadCredentials', () => {
+  let tmpDir: string;
 
-    fs.mkdirSync(path.dirname(credFile), { recursive: true });
-    fs.writeFileSync(credFile, JSON.stringify(creds, null, 2));
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-creds-'));
+    mockConfigDir = tmpDir;
+  });
 
-    const parsed = JSON.parse(fs.readFileSync(credFile, 'utf8')) as { apiKey: string };
-    expect(parsed.apiKey).toBe(creds.apiKey);
-
+  afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('creates directory structure if missing', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-test-'));
-    const nestedDir = path.join(tmpDir, 'deep', 'nested');
-    const credFile = path.join(nestedDir, 'credentials.json');
-
-    fs.mkdirSync(nestedDir, { recursive: true });
-    fs.writeFileSync(credFile, JSON.stringify({ apiKey: 'test_key_1234' }, null, 2));
-
-    expect(fs.existsSync(credFile)).toBe(true);
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+  it('saves and loads credentials round-trip', () => {
+    saveCredentials({ apiKey: 'pk_test_abcdefgh1234' });
+    const loaded = loadCredentials();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.apiKey).toBe('pk_test_abcdefgh1234');
   });
 
-  it('returns null (file absent) when path does not exist', () => {
-    const fakePath = path.join(os.tmpdir(), 'prokodo-nonexistent-' + Date.now(), 'creds.json');
-    expect(fs.existsSync(fakePath)).toBe(false);
-    const result = fs.existsSync(fakePath) ? 'found' : null;
+  it('creates parent directory if it does not exist', () => {
+    const nested = path.join(tmpDir, 'new-dir');
+    mockConfigDir = nested;
+    expect(fs.existsSync(nested)).toBe(false);
+    saveCredentials({ apiKey: 'pk_test_mkdir_12345678' });
+    expect(fs.existsSync(path.join(nested, 'credentials.json'))).toBe(true);
+  });
+
+  it('writes human-readable indented JSON', () => {
+    saveCredentials({ apiKey: 'pk_formatted_key_1234' });
+    const raw = fs.readFileSync(credentialsPath(), 'utf8');
+    expect(raw).toContain('\n');
+    expect(() => JSON.parse(raw)).not.toThrow();
+  });
+
+  it('overwriting saves the new key', () => {
+    saveCredentials({ apiKey: 'pk_first_12345678' });
+    saveCredentials({ apiKey: 'pk_second_87654321' });
+    const loaded = loadCredentials();
+    expect(loaded!.apiKey).toBe('pk_second_87654321');
+  });
+
+  it('loadCredentials returns null when file does not exist', () => {
+    const result = loadCredentials();
+    expect(result).toBeNull();
+  });
+
+  it('loadCredentials returns null when file contains invalid JSON', () => {
+    fs.mkdirSync(tmpDir, { recursive: true });
+    fs.writeFileSync(credentialsPath(), 'NOT JSON');
+    const result = loadCredentials();
     expect(result).toBeNull();
   });
 
   it('applies chmod 0600 on non-Windows', () => {
     if (process.platform === 'win32') return;
-
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-chmod-'));
-    const credFile = path.join(tmpDir, 'credentials.json');
-    fs.writeFileSync(credFile, '{}');
-    fs.chmodSync(credFile, 0o600);
-
-    const mode = fs.statSync(credFile).mode & 0o777;
+    saveCredentials({ apiKey: 'pk_chmod_test_1234' });
+    const mode = fs.statSync(credentialsPath()).mode & 0o777;
     expect(mode).toBe(0o600);
+  });
+});
 
+// ─── loadCredentials — permission warning ────────────────────────────────────
+
+describe('loadCredentials permission warning', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-creds-perm-'));
+    mockConfigDir = tmpDir;
+  });
+
+  afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('deleteCredentials returns false when no file exists', () => {
-    const nonexistent = path.join(os.tmpdir(), 'prokodo-del-' + Date.now(), 'credentials.json');
-    expect(fs.existsSync(nonexistent)).toBe(false);
-    const result = fs.existsSync(nonexistent);
-    expect(result).toBe(false);
+  it('writes a warning to stderr when permissions are > 0600 (non-win32)', () => {
+    if (process.platform === 'win32') return;
+
+    saveCredentials({ apiKey: 'pk_loose_perms_1234' });
+    fs.chmodSync(credentialsPath(), 0o644); // loosen permissions
+
+    const stderrChunks: string[] = [];
+    const originalWrite = process.stderr.write.bind(process.stderr);
+    (process.stderr as { write: unknown }).write = (chunk: string | Uint8Array) => {
+      stderrChunks.push(typeof chunk === 'string' ? chunk : chunk.toString());
+      return true;
+    };
+
+    try {
+      loadCredentials();
+    } finally {
+      process.stderr.write = originalWrite;
+    }
+
+    expect(stderrChunks.join('')).toContain('Warning');
   });
 
-  it('delete removes file from disk', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-del2-'));
-    const credFile = path.join(tmpDir, 'credentials.json');
-    fs.writeFileSync(credFile, JSON.stringify({ apiKey: 'pk_test' }));
+  it('does not warn when file permissions are exactly 0600', () => {
+    if (process.platform === 'win32') return;
 
-    expect(fs.existsSync(credFile)).toBe(true);
-    fs.unlinkSync(credFile);
-    expect(fs.existsSync(credFile)).toBe(false);
+    saveCredentials({ apiKey: 'pk_good_perms_12345' });
+    // saveCredentials already chmods to 0600
 
+    const stderrChunks: string[] = [];
+    const originalWrite = process.stderr.write.bind(process.stderr);
+    (process.stderr as { write: unknown }).write = (chunk: string | Uint8Array) => {
+      stderrChunks.push(typeof chunk === 'string' ? chunk : chunk.toString());
+      return true;
+    };
+
+    try {
+      loadCredentials();
+    } finally {
+      process.stderr.write = originalWrite;
+    }
+
+    expect(stderrChunks.join('')).not.toContain('Warning');
+  });
+});
+
+// ─── deleteCredentials ────────────────────────────────────────────────────────
+
+describe('deleteCredentials', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-del-'));
+    mockConfigDir = tmpDir;
+  });
+
+  afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('written JSON is human-readable (indented with newlines)', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-fmt-'));
-    const credFile = path.join(tmpDir, 'credentials.json');
-    fs.mkdirSync(path.dirname(credFile), { recursive: true });
-    fs.writeFileSync(credFile, JSON.stringify({ apiKey: 'pk_formatted_key' }, null, 2));
-
-    const raw = fs.readFileSync(credFile, 'utf8');
-    expect(raw).toContain('\n');
-
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+  it('returns false when credentials file does not exist', () => {
+    expect(deleteCredentials()).toBe(false);
   });
 
-  it('credentials file only stores apiKey key', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-shape-'));
-    const credFile = path.join(tmpDir, 'credentials.json');
-    fs.mkdirSync(path.dirname(credFile), { recursive: true });
-    fs.writeFileSync(credFile, JSON.stringify({ apiKey: 'pk_only_key' }, null, 2));
+  it('returns true and removes the file when it exists', () => {
+    saveCredentials({ apiKey: 'pk_to_delete_1234' });
+    expect(fs.existsSync(credentialsPath())).toBe(true);
 
-    const parsed = JSON.parse(fs.readFileSync(credFile, 'utf8')) as Record<string, unknown>;
-    expect(Object.keys(parsed)).toEqual(['apiKey']);
+    const result = deleteCredentials();
+    expect(result).toBe(true);
+    expect(fs.existsSync(credentialsPath())).toBe(false);
+  });
 
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+  it('second delete after first returns false', () => {
+    saveCredentials({ apiKey: 'pk_double_delete_12' });
+    deleteCredentials();
+    expect(deleteCredentials()).toBe(false);
   });
 });

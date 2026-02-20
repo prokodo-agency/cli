@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { validateConfig, buildDefaultConfig, saveConfig, loadConfig } from './config';
+import { validateConfig, buildDefaultConfig, saveConfig, loadConfig, configPath } from './config';
 
 // ─── validateConfig ───────────────────────────────────────────────────────────
 
@@ -169,5 +169,49 @@ describe('saveConfig + loadConfig', () => {
     expect(loaded.timeout).toBe(120);
 
     fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+});
+
+// ─── default parameter branches ───────────────────────────────────────────────
+
+describe('default parameter branches', () => {
+  it('configPath() uses process.cwd() when no basePath given', () => {
+    const result = configPath();
+    expect(result).toContain(process.cwd());
+    expect(result).toContain('config.json');
+  });
+
+  it('buildDefaultConfig() with no args returns valid defaults', () => {
+    const cfg = buildDefaultConfig();
+    expect(cfg.projectSlug).toBe('');
+    expect(Array.isArray(cfg.verifyGlobs)).toBe(true);
+    expect(cfg.timeout).toBe(300);
+  });
+
+  it('saveConfig() uses process.cwd() when no basePath given', () => {
+    const savedCwd = process.cwd();
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-cwd-save-'));
+    process.chdir(tmpDir);
+    try {
+      saveConfig(buildDefaultConfig({ projectSlug: 'cwd-test' }));
+      expect(fs.existsSync(path.join(tmpDir, '.prokodo', 'config.json'))).toBe(true);
+    } finally {
+      process.chdir(savedCwd);
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('loadConfig() uses process.cwd() when no basePath given', () => {
+    const savedCwd = process.cwd();
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-cwd-load-'));
+    saveConfig(buildDefaultConfig({ projectSlug: 'cwd-load' }), tmpDir);
+    process.chdir(tmpDir);
+    try {
+      const cfg = loadConfig();
+      expect(cfg.projectSlug).toBe('cwd-load');
+    } finally {
+      process.chdir(savedCwd);
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 });

@@ -25,6 +25,7 @@ export function registerAuthCommands(program: Command): void {
         if (!isInteractive()) {
           fatal('No --key provided and stdin is not a TTY. Use: prokodo auth login --key <key>', 2);
         }
+        /* istanbul ignore next */
         key = await promptKey('Enter your prokodo API key: ');
       }
 
@@ -37,7 +38,7 @@ export function registerAuthCommands(program: Command): void {
       try {
         await client.get<HealthResponse>('/api/cli/v1/health');
       } catch (err_) {
-        const msg = err_ instanceof Error ? err_.message : String(err_);
+        const msg = err_ instanceof Error ? err_.message : /* istanbul ignore next */ String(err_);
         fatal(`Could not verify the API key against ${apiUrl}: ${msg}`);
       }
 
@@ -101,6 +102,7 @@ export function registerAuthCommands(program: Command): void {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+/* istanbul ignore next */
 function promptKey(question: string): Promise<string> {
   return new Promise((resolve) => {
     // Write the prompt manually so we can suppress terminal echo

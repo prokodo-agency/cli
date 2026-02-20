@@ -19,7 +19,10 @@ function mockFetch(responses: MockResponse[]): void {
       ok: mock.status >= 200 && mock.status < 300,
       status: mock.status,
       statusText: 'Mock',
-      headers: new Headers(mock.headers ?? {}),
+      headers: {
+        get: (name: string): string | null =>
+          ((mock.headers ?? {}) as Record<string, string>)[name] ?? null,
+      } as unknown as Headers,
       json: async () => mock.body,
       text: async () => JSON.stringify(mock.body),
     } as unknown as Response;
@@ -50,7 +53,7 @@ describe('ApiClient.get', () => {
         ok: true,
         status: 204,
         statusText: 'No Content',
-        headers: new Headers({}),
+        headers: { get: () => null } as unknown as Headers,
         json: async () => {
           throw new Error('Should not parse 204');
         },
@@ -122,7 +125,7 @@ describe('ApiClient retry', () => {
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
-        headers: new Headers({}),
+        headers: { get: () => null } as unknown as Headers,
         json: async () => ({ error: 'server_error', message: 'err', requestId: '' }),
       } as unknown as Response;
     };
@@ -141,7 +144,7 @@ describe('ApiClient retry', () => {
           ok: false,
           status: 500,
           statusText: 'Error',
-          headers: new Headers({}),
+          headers: { get: () => null } as unknown as Headers,
           json: async () => ({ error: 'server_error', message: 'err', requestId: '' }),
         } as unknown as Response;
       }
@@ -149,7 +152,7 @@ describe('ApiClient retry', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        headers: new Headers({}),
+        headers: { get: () => null } as unknown as Headers,
         json: async () => ({ ok: true }),
       } as unknown as Response;
     };
@@ -168,7 +171,7 @@ describe('ApiClient retry', () => {
         ok: false,
         status: 400,
         statusText: 'Bad Request',
-        headers: new Headers({}),
+        headers: { get: () => null } as unknown as Headers,
         json: async () => ({ error: 'bad_request', message: 'Invalid payload', requestId: '' }),
       } as unknown as Response;
     };
@@ -195,7 +198,7 @@ describe('ApiClient headers', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        headers: new Headers({}),
+        headers: { get: () => null } as unknown as Headers,
         json: async () => ({}),
       } as unknown as Response;
     };
@@ -219,7 +222,7 @@ describe('ApiClient headers', () => {
       return {
         ok: true,
         status: 200,
-        headers: new Headers({}),
+        headers: { get: () => null } as unknown as Headers,
         json: async () => ({}),
       } as unknown as Response;
     };
@@ -248,7 +251,7 @@ describe('ApiClient.post', () => {
         ok: true,
         status: 202,
         statusText: 'Accepted',
-        headers: new Headers({}),
+        headers: { get: () => null } as unknown as Headers,
         json: async () => ({ runId: 'abc', status: 'queued', creditsEstimated: 1 }),
       } as unknown as Response;
     };
@@ -257,5 +260,217 @@ describe('ApiClient.post', () => {
     const payload = { projectSlug: 'test', files: [] };
     await client.post('/api/cli/v1/verify/run', payload);
     expect(receivedBody).toEqual(payload);
+  });
+});
+
+// ─── 429 rate limiting ───────────────────────────────────────────────────────
+
+describe('ApiClient 429 rate limiting', () => {
+  it('retries after 429 and succeeds on next attempt', async () => {
+    jest.useFakeTimers();
+    let calls = 0;
+    globalThis.fetch = async (): Promise<Response> => {
+      calls++;
+      if (calls === 1) {
+        return {
+          ok: false,
+          status: 429,
+          statusText: 'Too Many Requests',
+          headers: { get: (n: string) => (n === 'retry-after' ? '0' : null) } as unknown as Headers,
+          json: async () => ({}),
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: { get: () => null } as unknown as Headers,
+        json: async () => ({ ok: true }),
+      } as unknown as Response;
+    };
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 2 });
+    const promise = client.get<{ ok: boolean }>('/api');
+    await jest.runAllTimersAsync();
+    const result = await promise;
+    expect(result.ok).toBe(true);
+    expect(calls).toBeGreaterThanOrEqual(2);
+    jest.useRealTimers();
+  });
+
+  it('throws ApiRequestError after exhausting retries on repeated 429', async () => {
+    jest.useFakeTimers();
+    globalThis.fetch = async (): Promise<Response> =>
+      ({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        // No retry-after header → triggers the `?? '5'` fallback branch
+        headers: { get: () => null } as unknown as Headers,
+        json: async () => ({}),
+      }) as unknown as Response;
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 1 });
+    // Capture rejection immediately to prevent unhandled rejection
+    const result = client.get('/api').catch((e: unknown) => e);
+    await jest.runAllTimersAsync();
+    const err = await result;
+    expect(err).toBeInstanceOf(ApiRequestError);
+    jest.useRealTimers();
+  });
+
+  it('uses 5s fallback when retry-after is not a finite number', async () => {
+    jest.useFakeTimers();
+    let calls = 0;
+    globalThis.fetch = async (): Promise<Response> => {
+      calls++;
+      if (calls === 1) {
+        return {
+          ok: false,
+          status: 429,
+          statusText: 'Too Many Requests',
+          // Non-numeric retry-after triggers the 5_000 ms fallback branch
+          headers: {
+            get: (n: string) => (n === 'retry-after' ? 'notanumber' : null),
+          } as unknown as Headers,
+          json: async () => ({}),
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: { get: () => null } as unknown as Headers,
+        json: async () => ({ ok: true }),
+      } as unknown as Response;
+    };
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 2 });
+    const promise = client.get<{ ok: boolean }>('/api');
+    await jest.runAllTimersAsync();
+    const result = await promise;
+    expect(result.ok).toBe(true);
+    jest.useRealTimers();
+  });
+
+  it('uses default maxRetries (3) when not supplied', async () => {
+    // This covers the `opts.maxRetries ?? 3` branch in the constructor
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY });
+    // Just verify the client can be instantiated and used
+    globalThis.fetch = async (): Promise<Response> =>
+      ({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: { get: () => null } as unknown as Headers,
+        json: async () => ({ defaults: true }),
+      }) as unknown as Response;
+    const result = await client.get<{ defaults: boolean }>('/test');
+    expect(result.defaults).toBe(true);
+  });
+});
+
+// ─── Network / abort errors ──────────────────────────────────────────────────
+
+describe('ApiClient network errors', () => {
+  it('retries on network error and eventually succeeds', async () => {
+    jest.useFakeTimers();
+    let calls = 0;
+    globalThis.fetch = async (): Promise<Response> => {
+      calls++;
+      if (calls === 1) throw new Error('ECONNREFUSED');
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: { get: () => null } as unknown as Headers,
+        json: async () => ({ recovered: true }),
+      } as unknown as Response;
+    };
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 2 });
+    const promise = client.get<{ recovered: boolean }>('/api');
+    await jest.runAllTimersAsync();
+    const result = await promise;
+    expect(result.recovered).toBe(true);
+    jest.useRealTimers();
+  });
+
+  it('throws generic error after exhausting network error retries', async () => {
+    jest.useFakeTimers();
+    globalThis.fetch = async (): Promise<Response> => {
+      throw new Error('ECONNREFUSED');
+    };
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 1 });
+    // Capture rejection immediately
+    const result = client.get('/api').catch((e: unknown) => e);
+    await jest.runAllTimersAsync();
+    const err = await result;
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toMatch(/Request failed after 1 retries/);
+    jest.useRealTimers();
+  });
+});
+
+// ─── parseError catch ────────────────────────────────────────────────────────
+
+describe('ApiClient parseError', () => {
+  it('handles response where json() throws (falls back to statusText)', async () => {
+    globalThis.fetch = async (): Promise<Response> =>
+      ({
+        ok: false,
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        headers: { get: () => null } as unknown as Headers,
+        json: async (): Promise<unknown> => {
+          throw new Error('JSON decode failed');
+        },
+      }) as unknown as Response;
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 0 });
+    const err = await client.get('/api').catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiRequestError);
+    expect((err as ApiRequestError).statusCode).toBe(422);
+    expect((err as ApiRequestError).code).toBe('unknown_error');
+  });
+
+  it('handles 5xx response where json() throws and exhausts retries', async () => {
+    jest.useFakeTimers();
+    globalThis.fetch = async (): Promise<Response> =>
+      ({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { get: () => null } as unknown as Headers,
+        json: async (): Promise<unknown> => {
+          throw new Error('JSON decode failed');
+        },
+      }) as unknown as Response;
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 1 });
+    // Capture rejection immediately to prevent unhandled rejection
+    const result = client.get('/api').catch((e: unknown) => e);
+    await jest.runAllTimersAsync();
+    const err = await result;
+    expect(err).toBeInstanceOf(ApiRequestError);
+    jest.useRealTimers();
+  });
+
+  it('falls back gracefully when error response has missing fields', async () => {
+    globalThis.fetch = async (): Promise<Response> =>
+      ({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: { get: () => null } as unknown as Headers,
+        json: async () => ({}), // no error/message/requestId fields
+      }) as unknown as Response;
+
+    const client = new ApiClient({ baseUrl: BASE_URL, apiKey: API_KEY, maxRetries: 0 });
+    const err = await client.get('/api').catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiRequestError);
+    expect((err as ApiRequestError).code).toBe('unknown_error');
+    expect((err as ApiRequestError).message).toBe('Bad Request'); // fell back to statusText
   });
 });

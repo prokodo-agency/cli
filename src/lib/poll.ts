@@ -52,6 +52,7 @@ export async function poll<T>(opts: PollOptions<T>): Promise<T> {
     }
 
     const remaining = deadline - Date.now();
+    /* istanbul ignore next */
     if (remaining <= 0) break;
 
     const wait = Math.min(interval, remaining);

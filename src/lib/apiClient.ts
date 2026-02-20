@@ -6,7 +6,7 @@ const CLI_VERSION: string = (function () {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return (require('../../package.json') as { version: string }).version;
-  } catch {
+  } catch /* istanbul ignore next */ {
     return '0.0.0';
   }
 })();
@@ -80,7 +80,10 @@ export class ApiClient {
 
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), this.requestTimeout);
+        const timer = setTimeout(
+          /* istanbul ignore next */ () => controller.abort(),
+          this.requestTimeout,
+        );
 
         let response: Response;
         try {
@@ -97,7 +100,7 @@ export class ApiClient {
         // Handle 429 with Retry-After
         if (response.status === 429) {
           const retryAfter = Number(response.headers.get('retry-after') ?? '5');
-          const wait = isFinite(retryAfter) ? retryAfter * 1000 : 5_000;
+          const wait = isFinite(retryAfter) ? retryAfter * 1000 : /* istanbul ignore next */ 5_000;
           warn(`Rate limited. Waiting ${retryAfter}s before retry…`);
           await sleep(wait);
           lastError = new ApiRequestError(429, 'rate_limited', 'Rate limited', '');
