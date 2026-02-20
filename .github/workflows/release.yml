@@ -33,8 +33,8 @@ jobs:
 
     permissions:
       contents: read
-      packages: write  # push to GitHub Packages
-      id-token: write  # SLSA provenance attestation
+      packages: write # push to GitHub Packages
+      id-token: write # SLSA provenance attestation
 
     steps:
       - uses: actions/checkout@v6.0.2
