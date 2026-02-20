@@ -131,7 +131,7 @@ jobs:
           mkdir -p /tmp/smoke-ci
           cd /tmp/smoke-ci
           node "$GITHUB_WORKSPACE/dist/cli.js" init --defaults --slug smoke-ci
-          node -e "const c=require('.prokodo/config.json'); if(c.projectSlug!=='smoke-ci') process.exit(1); console.log('init OK');"
+          node -e "const c=require('./.prokodo/config.json'); if(c.projectSlug!=='smoke-ci') process.exit(1); console.log('init OK');"
 
       - name: 'Smoke: prokodo doctor --json (no credentials — exit 1 expected)'
         shell: bash
