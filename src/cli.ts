@@ -1,11 +1,7 @@
 import { Command } from 'commander';
 import { configureLogger } from './lib/logger';
 import { getDefaultApiUrl } from './lib/platform';
-import { registerAuthCommands } from './commands/auth';
-import { registerCreditsCommand } from './commands/credits';
-import { registerInitCommand } from './commands/init';
-import { registerVerifyCommand } from './commands/verify';
-import { registerDoctorCommand } from './commands/doctor';
+import { COMMANDS } from './commands/registry';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../package.json') as { version: string };
@@ -40,14 +36,24 @@ async function main(): Promise<void> {
         verbose: opts.verbose,
         noColor: !opts.color || Boolean(process.env['NO_COLOR']),
       });
-    });
+    })
+    .addHelpText(
+      'after',
+      `
+Quick start:
+  $ prokodo auth login --key pk_live_...   Store your API key
+  $ prokodo init --slug my-project         Create .prokodo/config.json
+  $ prokodo verify                         Run a cloud verification
+  $ prokodo doctor --json                  Health-check in JSON mode
+  $ prokodo credits                        Show credit balance
 
-  // ── Register commands ──────────────────────────────────────────────────────
-  registerAuthCommands(program);
-  registerCreditsCommand(program);
-  registerInitCommand(program);
-  registerVerifyCommand(program);
-  registerDoctorCommand(program);
+Docs: https://prokodo.com/docs/cli`,
+    );
+
+  // ── Register commands (driven by src/commands/registry.ts) ───────────────
+  for (const { register } of COMMANDS) {
+    register(program);
+  }
 
   // ── Unknown command handler ───────────────────────────────────────────────
   program.on('command:*', (args) => {

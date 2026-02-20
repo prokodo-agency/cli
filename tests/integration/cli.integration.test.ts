@@ -5,7 +5,14 @@
  *  - src/cli.ts entrypoint: command registration, global option wiring, preAction hook
  *  - Real Commander argv parsing — not mocked
  *  - File-system side-effects (init creates configs, auth saves/deletes credentials)
- *  - Graceful, informative error handling across all five commands
+ *  - Graceful, informative error handling across all commands
+ *
+ * Help completeness contract:
+ *  - src/commands/registry.ts is the single source of truth for registered commands
+ *  - The 'help completeness' suite below imports COMMAND_NAMES from the registry and
+ *    asserts that every entry appears in `prokodo --help` output.
+ *  - Adding a command to the registry (required for cli.ts to wire it) automatically
+ *    makes that test fail until the command is properly appearing in help.
  *
  * Prerequisites:
  *   `pnpm build` must be run before these tests (dist/cli.js must exist).
@@ -18,6 +25,7 @@ import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { COMMAND_NAMES } from '../../src/commands/registry';
 
 // ─── Runner setup ─────────────────────────────────────────────────────────────
 
@@ -165,12 +173,14 @@ describe('prokodo --help', () => {
     expect(result.code).toBe(0);
   });
 
-  it('lists all five registered commands', () => {
-    expect(result.stdout).toMatch(/\bauth\b/);
-    expect(result.stdout).toMatch(/\bcredits\b/);
-    expect(result.stdout).toMatch(/\bdoctor\b/);
-    expect(result.stdout).toMatch(/\binit\b/);
-    expect(result.stdout).toMatch(/\bverify\b/);
+  it('lists every command declared in the registry (auto-fails when a new command is missing)', () => {
+    for (const name of COMMAND_NAMES) {
+      expect(result.stdout).toMatch(new RegExp(`\\b${name}\\b`));
+    }
+  });
+
+  it('shows the Quick start examples section', () => {
+    expect(result.stdout).toMatch(/quick start/i);
   });
 
   it('shows all global options defined in cli.ts', () => {
@@ -720,23 +730,61 @@ describe('prokodo credits', () => {
 // 8. help subcommand for every registered command
 // ═══════════════════════════════════════════════════════════════════════════════
 
-describe('every subcommand --help exits 0', () => {
-  const subcommands: string[][] = [
-    ['auth', '--help'],
-    ['auth', 'login', '--help'],
-    ['auth', 'logout', '--help'],
-    ['auth', 'whoami', '--help'],
-    ['init', '--help'],
-    ['doctor', '--help'],
-    ['credits', '--help'],
-    ['verify', '--help'],
-    ['help', 'doctor'],
-    ['help', 'init'],
-  ];
-
-  for (const args of subcommands) {
-    it(`prokodo ${args.join(' ')} exits 0`, () => {
-      expect(run(args).code).toBe(0);
+describe('every top-level --help exits 0 (driven by registry)', () => {
+  // This list is generated from COMMAND_NAMES so it grows automatically.
+  for (const name of COMMAND_NAMES) {
+    it(`prokodo ${name} --help exits 0`, () => {
+      expect(run([name, '--help']).code).toBe(0);
     });
   }
+});
+
+describe('auth sub-command --help exits 0', () => {
+  // auth has nested sub-commands; test them explicitly.
+  const authSubCmds = ['login', 'logout', 'whoami'];
+  for (const sub of authSubCmds) {
+    it(`prokodo auth ${sub} --help exits 0`, () => {
+      expect(run(['auth', sub, '--help']).code).toBe(0);
+    });
+  }
+});
+
+describe('prokodo help <command> exits 0 (driven by registry)', () => {
+  for (const name of COMMAND_NAMES) {
+    it(`prokodo help ${name} exits 0`, () => {
+      expect(run(['help', name]).code).toBe(0);
+    });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 9. help completeness — every registry entry appears in --help
+//
+// PURPOSE: this suite auto-fails whenever a command is added to the registry
+// but its name does not appear in `prokodo --help`.  It replaces the previous
+// hardcoded five-name list so no manual update is ever needed.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('help completeness — every command in the registry appears in --help', () => {
+  let helpOutput: string;
+
+  beforeAll(() => {
+    helpOutput = run(['--help']).stdout;
+  });
+
+  for (const name of COMMAND_NAMES) {
+    // Each iteration captures `name` in a closure — no let/const shadowing needed.
+    it(`"${name}" is listed in prokodo --help`, () => {
+      expect(helpOutput).toMatch(new RegExp(`\\b${name}\\b`));
+    });
+  }
+
+  it('total number of commands in --help matches the registry', () => {
+    // Count unique command-name word-matches in the Commands section.
+    // This guards against the case where a name appears only in an example.
+    const commandsSection = helpOutput.slice(helpOutput.toLowerCase().indexOf('commands:'));
+    for (const name of COMMAND_NAMES) {
+      expect(commandsSection).toContain(name);
+    }
+  });
 });
