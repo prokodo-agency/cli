@@ -1,7 +1,8 @@
 name: CI
 
-# Runs on pushes, PRs and can be called directly from release.yml.
+# Runs on pushes, PRs, manual dispatch, and can be called directly from release.yml.
 on:
+  workflow_dispatch: {} # allow manual trigger from GitHub Actions UI
   push:
     branches: [main, dev]
     paths:
