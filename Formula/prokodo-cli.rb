@@ -1,7 +1,7 @@
 # typed: false
 # frozen_string_literal: true
 
-# Homebrew formula for the Prokodo developer CLI.
+# Homebrew formula for the prokodo developer CLI.
 #
 # This formula lives in the prokodo/homebrew-tap tap.
 # To install:
@@ -11,7 +11,7 @@
 # To update the formula for a new release, change `url`, `sha256`,
 # and the `version` field below.
 class ProkodoCli < Formula
-  desc "Prokodo developer CLI — verify, inspect and manage your Prokodo projects"
+  desc "prokodo developer CLI — verify, inspect and manage your prokodo projects"
   homepage "https://github.com/prokodo/prokodo-cli"
   url "https://registry.npmjs.org/@prokodo/cli/-/cli-0.1.0.tgz"
   # Update sha256 with: curl -sL <url> | shasum -a 256

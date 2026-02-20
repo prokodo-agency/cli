@@ -1,11 +1,11 @@
 # @prokodo/cli
 
-[![npm version](https://img.shields.io/npm/v/@prokodo/cli?color=blue&label=npm)](https://www.npmjs.com/package/@prokodo/cli)
+[![GitHub Packages](https://img.shields.io/badge/github%20packages-%40prokodo%2Fcli-blue?logo=github)](https://github.com/prokodo-agency/cli/pkgs/npm/cli)
 [![CI](https://github.com/prokodo-agency/cli/actions/workflows/ci.yml/badge.svg)](https://github.com/prokodo-agency/cli/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Node ≥ 22](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)](https://nodejs.org)
 
-> Official developer CLI for [Prokodo](https://www.prokodo.com) — verify deployments, inspect credit usage, and manage project configuration from any terminal or CI pipeline.
+> Official developer CLI for [prokodo](https://www.prokodo.com) — verify deployments, inspect credit usage, and manage project configuration from any terminal or CI pipeline.
 
 ---
 
@@ -49,14 +49,22 @@ No other runtime dependencies — `dist/cli.js` is a fully self-contained bundle
 
 ### npm / pnpm / yarn
 
+Packages are published to **GitHub Packages**. Add the registry scope once, then
+install globally:
+
 ```bash
+# Tell npm/pnpm to resolve @prokodo/* from GitHub Packages
+npm config set @prokodo:registry https://npm.pkg.github.com
+
 # npm
 npm install -g @prokodo/cli
 
 # pnpm
+pnpm config set @prokodo:registry https://npm.pkg.github.com
 pnpm add -g @prokodo/cli
 
 # yarn
+yarn config set npmScopes.prokodo.npmRegistryServer https://npm.pkg.github.com
 yarn global add @prokodo/cli
 ```
 
@@ -264,7 +272,7 @@ Exit code `0` = all checks passed. Exit code `1` = one or more checks failed.
 
 | Field         | Type       | Description                                          |
 | ------------- | ---------- | ---------------------------------------------------- |
-| `projectSlug` | `string`   | Unique project identifier in Prokodo                 |
+| `projectSlug` | `string`   | Unique project identifier in prokodo                 |
 | `verifyGlobs` | `string[]` | Glob patterns for files included in the verification |
 | `timeout`     | `number`   | Maximum poll duration in seconds (must be > 0)       |
 
@@ -296,7 +304,10 @@ The file is written with permissions `0600` on Linux/macOS (owner read/write onl
 ### GitHub Actions
 
 ```yaml
-- name: Install Prokodo CLI
+- name: Configure GitHub Packages registry
+  run: npm config set @prokodo:registry https://npm.pkg.github.com
+
+- name: Install prokodo CLI
   run: npm install -g @prokodo/cli
 
 - name: Verify deployment
@@ -311,6 +322,7 @@ The file is written with permissions `0600` on Linux/macOS (owner read/write onl
 verify:
   image: node:22-alpine
   script:
+    - npm config set @prokodo:registry https://npm.pkg.github.com
     - npm install -g @prokodo/cli
     - prokodo verify --json --no-logs
   variables:
@@ -414,4 +426,4 @@ git push origin v0.2.0
 
 ## License
 
-[MIT](./LICENSE) © 2026 [Prokodo Agency](https://www.prokodo.com)
+[MIT](./LICENSE) © 2026 [prokodo agency](https://www.prokodo.com)

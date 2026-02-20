@@ -15,7 +15,7 @@ async function main(): Promise<void> {
 
   program
     .name('prokodo')
-    .description('Prokodo developer CLI — verify, inspect and manage your projects')
+    .description('prokodo developer CLI — verify, inspect and manage your projects')
     .version(version, '-v, --version', 'Print CLI version')
     .helpCommand('help [command]', 'Display help for a command')
     // ── Global options ───────────────────────────────────────────────────────

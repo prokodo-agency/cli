@@ -24,32 +24,39 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 2 — Publish to npm (requires CI to pass)
+  # Job 2 — Publish to GitHub Packages (OIDC / Trusted Publishing)
+  #
+  # GitHub Packages is the npm-compatible registry that supports true
+  # Trusted Publishing: authentication uses the auto-provisioned GITHUB_TOKEN
+  # (a short-lived OIDC credential) — no long-lived NPM_TOKEN secret required.
+  #
+  # Install from GitHub Packages:
+  #   npm install @prokodo/cli --registry https://npm.pkg.github.com
   # ──────────────────────────────────────────────────────────────────────────
   publish-npm:
-    name: Publish — npm
+    name: Publish — GitHub Packages (OIDC)
     runs-on: ubuntu-latest
     needs: ci
     # Optional: gate on manual approval via GitHub Environments
     # environment: npm-publish
 
-    # id-token: write is REQUIRED at job level to mint the OIDC token used for
-    # npm provenance signing (the "Verified" banner on the npm package page).
     permissions:
       contents: read
-      id-token: write
+      packages: write # push to GitHub Packages registry
+      id-token: write # OIDC token for provenance attestation
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.2.0
         with:
           version: '10'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.2.0
         with:
           node-version: '22'
-          registry-url: https://registry.npmjs.org
+          # GitHub Packages npm registry — authentication via GITHUB_TOKEN (OIDC)
+          registry-url: https://npm.pkg.github.com
           cache: pnpm
           cache-dependency-path: prokodo-cli/pnpm-lock.yaml
 
@@ -71,7 +78,7 @@ jobs:
           echo "✅  Version: ${PKG}"
 
       # Pack the tarball explicitly so we can (a) attest it and (b) publish
-      # the exact same artifact that was attested — no rebuild on publish.
+      # the exact same bytes that were attested — no rebuild on publish.
       - name: Pack npm tarball
         id: pack
         shell: bash
@@ -83,17 +90,17 @@ jobs:
       # Creates a GitHub-side SLSA provenance attestation for the tarball.
       # Verifiable with: gh attestation verify <tarball> --repo <owner/repo>
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: prokodo-cli/${{ steps.pack.outputs.tarball }}
 
-      # Publish the pre-packed tarball with --provenance so npm signs it with
-      # the OIDC token and shows the "Verified" banner on the package page.
-      - name: Publish to npm (provenance → Verified banner)
+      # Publish using GITHUB_TOKEN — no NPM_TOKEN secret needed.
+      # The short-lived token is auto-provisioned by GitHub Actions (OIDC).
+      - name: Publish to GitHub Packages
         shell: bash
         run: npm publish --access public --provenance ${{ steps.pack.outputs.tarball }}
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ──────────────────────────────────────────────────────────────────────────
   # Job 3 — Build Docker image and push to GitHub Container Registry
@@ -104,12 +111,12 @@ jobs:
     needs: ci
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3.12.0
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -118,7 +125,7 @@ jobs:
       # Generate semantic-version tags automatically from the git tag
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v5.10.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/prokodo-cli
           tags: |
@@ -128,7 +135,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v6.19.2
         with:
           context: ./prokodo-cli
           push: true
@@ -146,12 +153,12 @@ jobs:
     needs: [publish-npm, publish-docker]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0 # full history for changelog generation
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           name: ${{ github.ref_name }}
           generate_release_notes: true

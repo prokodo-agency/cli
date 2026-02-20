@@ -2,7 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 /**
- * Returns the OS-appropriate config directory for Prokodo.
+ * Returns the OS-appropriate config directory for prokodo.
  * Linux/macOS : ~/.config/prokodo
  * Windows     : %APPDATA%\prokodo
  */

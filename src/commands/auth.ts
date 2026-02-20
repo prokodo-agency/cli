@@ -25,7 +25,7 @@ export function registerAuthCommands(program: Command): void {
         if (!isInteractive()) {
           fatal('No --key provided and stdin is not a TTY. Use: prokodo auth login --key <key>', 2);
         }
-        key = await promptKey('Enter your Prokodo API key: ');
+        key = await promptKey('Enter your prokodo API key: ');
       }
 
       if (!isValidKeyShape(key)) {
