@@ -7,6 +7,7 @@ on:
     branches: [main, dev]
     paths:
       - 'src/**'
+      - 'tests/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'tsconfig*.json'
@@ -17,6 +18,7 @@ on:
       - 'prettier.config.*'
       - '.prettierignore'
       - 'jest.config.*'
+      - 'jest.integration.config.*'
       - 'Dockerfile'
       - '.dockerignore'
       - '.github/workflows/ci.yml'
@@ -24,6 +26,7 @@ on:
     branches: [main, dev]
     paths:
       - 'src/**'
+      - 'tests/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'tsconfig*.json'
@@ -34,6 +37,7 @@ on:
       - 'prettier.config.*'
       - '.prettierignore'
       - 'jest.config.*'
+      - 'jest.integration.config.*'
       - 'Dockerfile'
       - '.dockerignore'
       - '.github/workflows/ci.yml'
@@ -128,6 +132,9 @@ jobs:
       - name: Tests with coverage
         run: pnpm test:coverage
 
+      - name: Integration tests
+        run: pnpm test:integration
+
       # Upload coverage once — from the Ubuntu run only
       - name: Upload coverage artifact
         if: matrix.os == 'ubuntu-latest'
@@ -136,28 +143,6 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 14
-
-      # ── Cross-platform smoke tests ────────────────────────────────────────
-      - name: 'Smoke: prokodo --help'
-        shell: bash
-        run: node dist/cli.js --help
-
-      - name: 'Smoke: prokodo --version'
-        shell: bash
-        run: node dist/cli.js --version
-
-      - name: 'Smoke: prokodo init --defaults --slug smoke-ci'
-        shell: bash
-        run: |
-          mkdir -p /tmp/smoke-ci
-          cd /tmp/smoke-ci
-          node "$GITHUB_WORKSPACE/dist/cli.js" init --defaults --slug smoke-ci
-          node -e "const c=require('./.prokodo/config.json'); if(c.projectSlug!=='smoke-ci') process.exit(1); console.log('init OK');"
-
-      - name: 'Smoke: prokodo doctor --json (no credentials — exit 1 expected)'
-        shell: bash
-        # exit 1 is intentional in CI (no API key); we just verify it runs cleanly.
-        run: node dist/cli.js doctor --json || true
 
   # ──────────────────────────────────────────────────────────────────────────
   # Job 3 — Docker build smoke (Ubuntu, gated on quality + test)
