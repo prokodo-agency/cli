@@ -1,17 +1,30 @@
 {
   "name": "@prokodo/cli",
   "version": "0.1.0",
-  "description": "prokodo developer CLI — verify, inspect and manage your prokodo related services",
+  "description": "Prokodo developer CLI — verify, inspect and manage your Prokodo related services",
   "license": "MIT",
+  "author": "Prokodo Agency <hello@prokodo.com> (https://www.prokodo.com)",
+  "keywords": [
+    "prokodo",
+    "cli",
+    "verify",
+    "developer-tools",
+    "devtools",
+    "deployment",
+    "ci"
+  ],
   "type": "commonjs",
   "main": "dist/cli.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/prokodo-agency/cli"
+    "url": "git+https://github.com/prokodo-agency/cli.git"
   },
   "homepage": "https://www.prokodo.com/",
   "bugs": {
     "url": "https://github.com/prokodo-agency/cli/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "bin": {
     "prokodo": "dist/cli.js"
@@ -39,17 +52,16 @@
     "clean": "rimraf dist coverage",
     "prepack": "pnpm build"
   },
-  "dependencies": {
-    "commander": "^12.1.0",
-    "picocolors": "^1.1.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@eslint/js": "^10",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.0.0",
+    "commander": "^12.1.0",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "jest": "^29.7.0",
+    "picocolors": "^1.1.1",
     "prettier": "^3.8.1",
     "ts-jest": "^29.4.6",
     "rimraf": "^5.0.10",
