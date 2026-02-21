@@ -1,0 +1,59 @@
+---
+id: overview
+title: Befehlsübersicht
+sidebar_position: 1
+description: Vollständige Referenzübersicht aller prokodo CLI-Befehle — auth, init, verify, credits und doctor.
+keywords: [prokodo CLI Befehle, prokodo auth, prokodo init, prokodo verify, prokodo CLI Referenz, prokodo Befehlsliste]
+---
+
+# Befehlsübersicht
+
+Alle Befehle stehen als `prokodo <befehl>` zur Verfügung. Verwende `--help` auf jeder Ebene für ausführliche Hilfe:
+
+```bash
+prokodo --help
+prokodo auth --help
+prokodo verify --help
+```
+
+## Verfügbare Befehle
+
+| Befehl | Beschreibung |
+|---|---|
+| [`auth`](auth) | API-Schlüssel verwalten (login, logout, whoami) |
+| [`init`](init) | `.prokodo/config.json` in einem Projekt anlegen |
+| [`verify`](verify) | Dateien hochladen und Cloud-Verifizierung starten |
+| [`credits`](credits) | Aktuelles Guthaben und Nutzungshistorie anzeigen |
+| [`doctor`](doctor) | Umgebung, Zugangsdaten und Konnektivität prüfen |
+
+## Exit-Codes
+
+| Code | Bedeutung |
+|---|---|
+| `0` | Erfolg |
+| `1` | Bekannter Fehler (z. B. Verifizierung fehlgeschlagen, ungültiger Schlüssel) |
+| `2` | Nutzungs- oder Konfigurationsfehler (z. B. fehlende Pflichtflags) |
+
+## JSON-Ausgabe
+
+Jeder Befehl unterstützt `--json`, um maschinenlesbare Ausgaben zu aktivieren:
+
+```bash
+prokodo verify --json
+prokodo credits --json
+prokodo doctor --json
+```
+
+Im JSON-Modus gehen alle Fehler an stderr und alle strukturierten Daten an stdout. Das ermöglicht einfaches Piping:
+
+```bash
+prokodo doctor --json | jq '.checks[] | select(.status == "fail")'
+```
+
+## Umgebungsvariablen
+
+| Variable | Entspricht |
+|---|---|
+| `PROKODO_API_KEY` | `--api-key` |
+| `PROKODO_PROJECT_SLUG` | `--project-slug` bei `verify` |
+| `PROKODO_TIMEOUT` | `--timeout` |

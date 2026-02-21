@@ -1,0 +1,34 @@
+{
+  "id": "changelog",
+  "title": "Änderungsprotokoll",
+  "description": "Vollständige Versionshistorie der prokodo CLI — was sich in jeder Version geändert hat.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/changelog.mdx",
+  "sourceDirName": ".",
+  "slug": "/changelog",
+  "permalink": "/de/docs/changelog",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/changelog.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 11,
+  "frontMatter": {
+    "id": "changelog",
+    "title": "Änderungsprotokoll",
+    "sidebar_position": 11,
+    "description": "Vollständige Versionshistorie der prokodo CLI — was sich in jeder Version geändert hat.",
+    "keywords": [
+      "prokodo CLI Changelog",
+      "prokodo Release Notes",
+      "prokodo CLI Versionen",
+      "prokodo CLI Verlauf"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "🏷 Versions",
+    "permalink": "/de/docs/versions"
+  }
+}

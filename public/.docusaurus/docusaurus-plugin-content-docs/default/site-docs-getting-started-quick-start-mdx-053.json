@@ -1,0 +1,38 @@
+{
+  "id": "getting-started/quick-start",
+  "title": "Quick Start",
+  "description": "Get from zero to a successful cloud verification in under five minutes with the prokodo CLI quick-start guide.",
+  "source": "@site/docs/getting-started/quick-start.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/quick-start",
+  "permalink": "/docs/getting-started/quick-start",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/getting-started/quick-start.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "quick-start",
+    "title": "Quick Start",
+    "sidebar_position": 2,
+    "description": "Get from zero to a successful cloud verification in under five minutes with the prokodo CLI quick-start guide.",
+    "keywords": [
+      "prokodo CLI quick start",
+      "prokodo CLI tutorial",
+      "prokodo verify guide",
+      "getting started prokodo CLI"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "Installation",
+    "permalink": "/docs/getting-started/installation"
+  },
+  "next": {
+    "title": "Command Overview",
+    "permalink": "/docs/commands/overview"
+  }
+}

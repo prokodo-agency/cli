@@ -1,0 +1,28 @@
+{
+  "id": "intro",
+  "title": "Introduction",
+  "description": "The prokodo CLI is the official command-line interface for the prokodo marketplace. It lets you authenticate, configure projects, upload files for cloud verification, and inspect your environment — all without leaving the terminal.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/",
+  "permalink": "/cli/docs/",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/prokodo-cli/edit/main/website/docs/intro.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "intro",
+    "title": "Introduction",
+    "slug": "/",
+    "sidebar_position": 1
+  },
+  "sidebar": "cliSidebar",
+  "next": {
+    "title": "Installation",
+    "permalink": "/cli/docs/getting-started/installation"
+  }
+}

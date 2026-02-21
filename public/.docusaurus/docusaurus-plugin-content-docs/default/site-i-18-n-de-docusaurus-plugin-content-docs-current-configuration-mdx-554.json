@@ -1,0 +1,39 @@
+{
+  "id": "configuration",
+  "title": "Konfiguration",
+  "description": "prokodo CLI per Projekt über .prokodo/config.json konfigurieren — alle unterstützten Felder, Typen und Standardwerte.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/configuration.mdx",
+  "sourceDirName": ".",
+  "slug": "/configuration",
+  "permalink": "/de/docs/configuration",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/configuration.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "id": "configuration",
+    "title": "Konfiguration",
+    "sidebar_position": 8,
+    "description": "prokodo CLI per Projekt über .prokodo/config.json konfigurieren — alle unterstützten Felder, Typen und Standardwerte.",
+    "keywords": [
+      "prokodo Konfiguration",
+      "prokodo config.json",
+      "prokodo CLI Konfiguration",
+      ".prokodo/config.json",
+      "prokodo verifyGlobs"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "🌐 Global Options",
+    "permalink": "/de/docs/global-options"
+  },
+  "next": {
+    "title": "🔄 CI/CD Integration",
+    "permalink": "/de/docs/ci-cd"
+  }
+}

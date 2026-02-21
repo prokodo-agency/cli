@@ -1,0 +1,131 @@
+---
+id: auth
+title: auth
+sidebar_position: 2
+description: Manage your prokodo API key with the auth command — login, logout, and status sub-commands explained.
+keywords: [prokodo auth, prokodo API key, prokodo auth login, prokodo auth logout, prokodo CLI authentication]
+---
+
+# `prokodo auth`
+
+Manage your prokodo API key credentials.
+
+```
+prokodo auth <sub-command> [options]
+```
+
+## Sub-commands
+
+### `auth login`
+
+Store an API key in the credentials file at `~/.config/prokodo/credentials.json`.
+
+```bash
+prokodo auth login --key <key>
+```
+
+**Options**
+
+| Flag | Type | Description |
+|---|---|---|
+| `--key <key>` | string | API key to store. Omit to enter interactively (TTY only). |
+
+**Behaviour**
+
+1. Validates the key shape (≥ 8 characters, no `<` or `>` placeholders)
+2. Performs a non-destructive health check against the API to confirm the key is accepted
+3. Writes `~/.config/prokodo/credentials.json` with `0600` permissions
+4. Prints the masked key hint on success
+
+**Examples**
+
+```bash
+prokodo auth login --key pk_live_abc123xyz789
+```
+
+```bash
+# JSON mode — useful for scripted provisioning
+prokodo auth login --key pk_live_abc123xyz789 --json
+# → { "authenticated": true, "keyHint": "••••••••xyz789" }
+```
+
+**Exit codes**
+
+| Code | Cause |
+|---|---|
+| `0` | Key stored successfully |
+| `2` | No key provided in non-interactive mode |
+| `2` | Key fails shape validation |
+| `1` | API rejected the key |
+
+:::note
+When `stdin` is not a TTY (CI, Docker, pipe), the `--key` flag is required.  The CLI will exit `2` with an explanatory message if it is omitted.
+:::
+
+---
+
+### `auth logout`
+
+Remove the stored credentials file.
+
+```bash
+prokodo auth logout
+```
+
+**Behaviour**
+
+- Deletes `~/.config/prokodo/credentials.json` if it exists
+- Exits `0` whether credentials existed or not (idempotent)
+- Reports whether credentials were actually removed
+
+**Examples**
+
+```bash
+prokodo auth logout
+# Text: ✓ Credentials removed.   OR   ℹ No credentials were stored.
+```
+
+```bash
+prokodo auth logout --json
+# → { "loggedOut": true }    OR    { "loggedOut": false }
+```
+
+---
+
+### `auth whoami`
+
+Show the currently active API key (masked — last 4 characters visible) and its source.
+
+```bash
+prokodo auth whoami
+```
+
+**Priority chain** (highest to lowest):
+
+1. `--api-key` CLI flag
+2. `PROKODO_API_KEY` environment variable
+3. `~/.config/prokodo/credentials.json`
+
+If none are found, exits `2` with instructions.
+
+**Examples**
+
+```bash
+prokodo auth whoami
+# API key: ••••••••xyz789
+# Source: credentials file
+```
+
+```bash
+PROKODO_API_KEY=pk_live_test prokodo auth whoami --json
+# → { "keyHint": "••••test" }
+```
+
+## Credentials file location
+
+| Platform | Path |
+|---|---|
+| macOS / Linux | `~/.config/prokodo/credentials.json` |
+| Windows | `%APPDATA%\prokodo\credentials.json` |
+
+The file is created with `0600` permissions on POSIX systems.  A warning is printed on startup if permissions are more permissive.

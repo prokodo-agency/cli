@@ -53,7 +53,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "rimraf dist coverage",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build",
+    "docs:start": "cd public && pnpm start",
+    "docs:build": "cd public && pnpm build",
+    "docs:serve": "cd public && pnpm serve",
+    "docs:typecheck": "cd public && pnpm typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

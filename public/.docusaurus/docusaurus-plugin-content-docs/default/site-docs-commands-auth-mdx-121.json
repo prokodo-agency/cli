@@ -1,0 +1,39 @@
+{
+  "id": "commands/auth",
+  "title": "auth",
+  "description": "Manage your prokodo API key with the auth command — login, logout, and status sub-commands explained.",
+  "source": "@site/docs/commands/auth.mdx",
+  "sourceDirName": "commands",
+  "slug": "/commands/auth",
+  "permalink": "/docs/commands/auth",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/commands/auth.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "auth",
+    "title": "auth",
+    "sidebar_position": 2,
+    "description": "Manage your prokodo API key with the auth command — login, logout, and status sub-commands explained.",
+    "keywords": [
+      "prokodo auth",
+      "prokodo API key",
+      "prokodo auth login",
+      "prokodo auth logout",
+      "prokodo CLI authentication"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "Command Overview",
+    "permalink": "/docs/commands/overview"
+  },
+  "next": {
+    "title": "init",
+    "permalink": "/docs/commands/init"
+  }
+}

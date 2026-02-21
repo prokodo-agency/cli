@@ -1,0 +1,31 @@
+{
+  "id": "commands/auth",
+  "title": "auth",
+  "description": "Manage your prokodo API key credentials.",
+  "source": "@site/docs/commands/auth.md",
+  "sourceDirName": "commands",
+  "slug": "/commands/auth",
+  "permalink": "/cli/docs/commands/auth",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/prokodo-cli/edit/main/website/docs/commands/auth.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "auth",
+    "title": "auth",
+    "sidebar_position": 2
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "Command Overview",
+    "permalink": "/cli/docs/commands/overview"
+  },
+  "next": {
+    "title": "init",
+    "permalink": "/cli/docs/commands/init"
+  }
+}

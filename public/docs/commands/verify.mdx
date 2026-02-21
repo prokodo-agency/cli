@@ -1,0 +1,118 @@
+---
+id: verify
+title: verify
+sidebar_position: 4
+description: Upload project files and trigger a cloud verification run with prokodo verify — flags, exit codes, and JSON output.
+keywords: [prokodo verify, prokodo cloud verification, prokodo verify command, prokodo file upload, prokodo verify flags]
+---
+
+# `prokodo verify`
+
+Upload project files and trigger a cloud verification run.
+
+```bash
+prokodo verify [options]
+```
+
+## Prerequisites
+
+Before running `verify` you need:
+
+1. An authenticated API key ([`auth login`](auth))
+2. A `.prokodo/config.json` in the current directory ([`init`](init))
+
+## Options
+
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--ref <ref>` | string | — | Git ref, branch, or commit SHA to tag the run |
+| `--timeout <seconds>` | number | config value | Override the verification timeout |
+| `--no-logs` | boolean | `false` | Disable remote log streaming |
+
+## What happens when you run `verify`
+
+```
+1. Load .prokodo/config.json
+2. Validate --timeout (must be a positive finite number)
+3. Collect files matching verifyGlobs
+4. Resolve API key (flag → env var → credentials file)
+5. POST /api/cli/v1/verify/run
+6. Poll status + stream live logs (unless --no-logs)
+7. Fetch final result
+8. Print summary / emit JSON
+9. Exit 0 (pass) or 1 (fail) or 1 (timeout)
+```
+
+## Examples
+
+```bash
+# Basic run with live log streaming
+prokodo verify
+
+# Tag the run with the current git branch
+prokodo verify --ref $(git rev-parse --abbrev-ref HEAD)
+
+# Increase timeout for large projects
+prokodo verify --timeout 600
+
+# Silence log streaming (useful in CI where logs are noisy)
+prokodo verify --no-logs
+
+# Machine-readable output — combine with jq
+prokodo verify --json 2>/dev/null | jq .passed
+```
+
+## JSON output schema
+
+```json
+{
+  "passed": true,
+  "runId": "run_abc123",
+  "result": {
+    "status": "success",
+    "summary": "All checks passed"
+  }
+}
+```
+
+## Log streaming
+
+By default, `verify` streams log lines from the cloud run in real-time to `stderr`.  Use `--no-logs` to suppress them, or redirect `stderr`:
+
+```bash
+# Keep logs visible but capture JSON result
+prokodo verify --json 2>&1 1>/tmp/result.json
+```
+
+## Exit codes
+
+| Code | Cause |
+|---|---|
+| `0` | Verification passed |
+| `1` | Verification failed |
+| `1` | Timed out waiting for the run to complete |
+| `2` | No `.prokodo/config.json` found |
+| `2` | Invalid `--timeout` value |
+| `2` | No files matched `verifyGlobs` |
+| `2` | No API key configured |
+
+## Adjusting `verifyGlobs`
+
+Edit `.prokodo/config.json` to control which files are uploaded:
+
+```json
+{
+  "projectSlug": "my-project",
+  "verifyGlobs": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "public/**/*",
+    "package.json"
+  ],
+  "timeout": 300
+}
+```
+
+:::tip
+Exclude large build artifacts or test fixtures from `verifyGlobs` to keep runs fast and credit-efficient.
+:::

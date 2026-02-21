@@ -1,0 +1,31 @@
+{
+  "id": "getting-started/installation",
+  "title": "Installation",
+  "description": "Requirements",
+  "source": "@site/docs/getting-started/installation.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/installation",
+  "permalink": "/cli/docs/getting-started/installation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/prokodo-cli/edit/main/website/docs/getting-started/installation.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "installation",
+    "title": "Installation",
+    "sidebar_position": 1
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "👋 Introduction",
+    "permalink": "/cli/docs/"
+  },
+  "next": {
+    "title": "Quick Start",
+    "permalink": "/cli/docs/getting-started/quick-start"
+  }
+}

@@ -1,0 +1,98 @@
+---
+id: verify
+title: verify
+sidebar_position: 4
+description: Projektdateien hochladen und Cloud-Verifizierungslauf mit prokodo verify starten — Flags, Exit-Codes und JSON-Ausgabe.
+keywords: [prokodo verify, prokodo Cloud-Verifizierung, prokodo verify Befehl, prokodo Datei-Upload, prokodo verify Flags]
+---
+
+# verify
+
+`prokodo verify` ist der Kernbefehl der CLI. Er sammelt Projektdateien, die den konfigurierten Glob-Mustern entsprechen, lädt sie sicher in die prokodo-Cloud hoch und wartet auf das Verifizierungsergebnis.
+
+## Voraussetzungen
+
+1. Ein gültiger API-Schlüssel konfiguriert (über `prokodo auth login` oder `PROKODO_API_KEY`)
+2. `.prokodo/config.json` vorhanden im aktuellen Verzeichnis (oder `--project-slug` angegeben)
+
+## Verwendung
+
+```bash
+prokodo verify [Optionen]
+```
+
+## Optionen
+
+| Flag | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `--project-slug <slug>` | String | Aus config | Projekt-Slug überschreiben |
+| `--globs <muster>` | String[] | Aus config | Glob-Muster überschreiben |
+| `--timeout <sek>` | Number | `300` | Zeitüberschreitung überschreiben |
+| `--cwd <verz>` | String | `process.cwd()` | Arbeitsverzeichnis (für Konfiguration und Dateiauflösung) |
+| `--json` | Boolean | `false` | Maschinenlesbare Ausgabe aktivieren |
+| `--verbose` | Boolean | `false` | Hochgeladene Dateipfade und API-Antworten anzeigen |
+
+## Ablauf
+
+1. `API-Schlüssel laden` — aus Umgebungsvariable oder gespeicherter Datei
+2. `Konfiguration laden` — `.prokodo/config.json` lesen, Flags darüber anwenden
+3. `Dateien einsammeln` — Glob-Muster gegen `--cwd`-Verzeichnis auflösen
+4. `Upload starten` — signierte Upload-URL anfordern und Archiv senden
+5. `Lauf starten` — Cloud-Verifizierung auslösen
+6. `Ergebnis streamen` — Logs in Echtzeit anzeigen
+7. `Beenden` — Exit-Code based auf dem Ergebnis zurückgeben
+
+## JSON-Ausgabeschema
+
+```json
+{
+  "runId": "run_abc123",
+  "status": "passed",
+  "projectSlug": "my-n8n-node",
+  "startedAt": "2025-01-01T00:00:00Z",
+  "completedAt": "2025-01-01T00:01:05Z",
+  "files": 42,
+  "checks": [
+    { "name": "Struktur", "status": "passed" },
+    { "name": "Abhängigkeiten", "status": "passed" }
+  ]
+}
+```
+
+## Exit-Codes
+
+| Code | Bedeutung |
+|---|---|
+| `0` | Verifizierung bestanden |
+| `1` | Verifizierung fehlgeschlagen oder API-Fehler |
+| `2` | Falsche Nutzung (fehlende Pflichtfelder, Konfigurationsfehler) |
+
+## Konfiguration für verifyGlobs
+
+Mit `verifyGlobs` wird gesteuert, welche Dateien hochgeladen werden. Beispiele:
+
+```json
+{
+  "verifyGlobs": [
+    "src/**/*",
+    "package.json",
+    "!**/*.test.*",
+    "!node_modules/**"
+  ]
+}
+```
+
+Ausschlussmuster beginnen mit `!`.
+
+## Beispiele
+
+```bash
+# Standard (Konfiguration aus .prokodo/config.json lesen)
+prokodo verify
+
+# Projekt-Slug überschreiben
+prokodo verify --project-slug mein-anderes-projekt
+
+# JSON-Ausgabe für CI erfassen
+prokodo verify --json > ergebnis.json
+```

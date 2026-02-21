@@ -1,0 +1,192 @@
+/* Landing page module CSS */
+
+.heroBanner {
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroLogo {
+  height: 56px;
+  width: auto;
+  display: block;
+  margin: 0 auto 1.5rem;
+}
+
+.heroTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-align: center;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  margin-bottom: 0.5rem;
+}
+
+.heroWordmark {
+  height: 4.15em;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+  /* optical alignment with cap-height */
+  margin-top: 0.05em;
+}
+
+.heroSrOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.heroCtas {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.heroSecondaryBtn {
+  /* kept for compat — Button component handles its own outline styles */
+}
+
+.heroInstall {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(30, 144, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.6rem 1.25rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.heroInstall code {
+  background: transparent;
+  border: none;
+  color: var(--color-secondary-500);
+  font-size: inherit;
+  padding: 0;
+}
+
+/* ─── Quick-start strip ───────────────────────────────────────────────────── */
+
+.quickStart {
+  padding: 4rem 0;
+  background: var(--color-primary-40);
+  border-top: 1px solid rgba(30, 144, 255, 0.1);
+  border-bottom: 1px solid rgba(30, 144, 255, 0.1);
+}
+
+.sectionHeading {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.codeStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.codeStep {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  background: var(--ifm-background-color);
+  border: 1px solid rgba(30, 144, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  text-decoration: none !important;
+  transition: border-color 200ms, box-shadow 200ms;
+}
+
+.codeStep:hover {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 4px 20px rgba(30, 144, 255, 0.18);
+}
+
+.codeStep code {
+  display: block;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(30, 144, 255, 0.25);
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--ifm-color-content);
+  word-break: break-all;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--ifm-color-primary);
+  color: #fff;
+  font-family: var(--font-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stepLabel {
+  font-size: 0.75rem;
+  color: var(--ifm-font-color-base);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stepHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ─── Feature grid ─────────────────────────────────────────────────────────── */
+
+.features {
+  padding: 4rem 0 5rem;
+  background-color: var(--color-primary-20);
+}
+
+.featureCol {
+  margin-bottom: 1.5rem;
+}
+
+.featureCardLink {
+  display: block;
+  height: 100%;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.featureCardLink:hover .featureCardHost {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 4px 24px rgba(30, 144, 255, 0.18);
+}
+
+.featureCardHost {
+  height: 100%;
+  transition: border-color 200ms, box-shadow 200ms;
+}

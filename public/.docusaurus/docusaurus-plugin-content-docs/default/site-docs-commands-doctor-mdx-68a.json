@@ -1,0 +1,39 @@
+{
+  "id": "commands/doctor",
+  "title": "doctor",
+  "description": "Diagnose your local prokodo setup with prokodo doctor — checks Node version, credentials, config, and connectivity.",
+  "source": "@site/docs/commands/doctor.mdx",
+  "sourceDirName": "commands",
+  "slug": "/commands/doctor",
+  "permalink": "/docs/commands/doctor",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/commands/doctor.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "id": "doctor",
+    "title": "doctor",
+    "sidebar_position": 6,
+    "description": "Diagnose your local prokodo setup with prokodo doctor — checks Node version, credentials, config, and connectivity.",
+    "keywords": [
+      "prokodo doctor",
+      "prokodo diagnose",
+      "prokodo environment check",
+      "prokodo doctor command",
+      "prokodo debug"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "credits",
+    "permalink": "/docs/commands/credits"
+  },
+  "next": {
+    "title": "🌐 Global Options",
+    "permalink": "/docs/global-options"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "commands/verify",
+  "title": "verify",
+  "description": "Projektdateien hochladen und Cloud-Verifizierungslauf mit prokodo verify starten — Flags, Exit-Codes und JSON-Ausgabe.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/commands/verify.mdx",
+  "sourceDirName": "commands",
+  "slug": "/commands/verify",
+  "permalink": "/de/docs/commands/verify",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/commands/verify.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "id": "verify",
+    "title": "verify",
+    "sidebar_position": 4,
+    "description": "Projektdateien hochladen und Cloud-Verifizierungslauf mit prokodo verify starten — Flags, Exit-Codes und JSON-Ausgabe.",
+    "keywords": [
+      "prokodo verify",
+      "prokodo Cloud-Verifizierung",
+      "prokodo verify Befehl",
+      "prokodo Datei-Upload",
+      "prokodo verify Flags"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "init",
+    "permalink": "/de/docs/commands/init"
+  },
+  "next": {
+    "title": "credits",
+    "permalink": "/de/docs/commands/credits"
+  }
+}

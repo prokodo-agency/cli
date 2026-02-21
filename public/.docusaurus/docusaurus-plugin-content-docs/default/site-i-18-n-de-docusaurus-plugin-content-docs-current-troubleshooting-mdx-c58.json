@@ -1,0 +1,39 @@
+{
+  "id": "troubleshooting",
+  "title": "Fehlerbehebung",
+  "description": "Häufige prokodo CLI-Fehler beheben — fehlender API-Schlüssel, ungültige Konfiguration, Timeout überschritten, Berechtigungen und Node-Versionsprobleme.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/troubleshooting.mdx",
+  "sourceDirName": ".",
+  "slug": "/troubleshooting",
+  "permalink": "/de/docs/troubleshooting",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/troubleshooting.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "id": "troubleshooting",
+    "title": "Fehlerbehebung",
+    "sidebar_position": 10,
+    "description": "Häufige prokodo CLI-Fehler beheben — fehlender API-Schlüssel, ungültige Konfiguration, Timeout überschritten, Berechtigungen und Node-Versionsprobleme.",
+    "keywords": [
+      "prokodo Fehlerbehebung",
+      "prokodo CLI Fehler",
+      "prokodo Fehler beheben",
+      "prokodo API-Schlüssel Fehler",
+      "prokodo CLI Debug"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "🔄 CI/CD Integration",
+    "permalink": "/de/docs/ci-cd"
+  },
+  "next": {
+    "title": "🏷 Versions",
+    "permalink": "/de/docs/versions"
+  }
+}

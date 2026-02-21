@@ -1,0 +1,22 @@
+{
+  "title": {
+    "message": "prokodo CLI",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "prokodo Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Docs": {
+    "message": "Dokumentation",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.Marketplace": {
+    "message": "Marketplace",
+    "description": "Navbar item with label Marketplace"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}

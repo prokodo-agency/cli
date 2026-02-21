@@ -1,0 +1,39 @@
+{
+  "id": "troubleshooting",
+  "title": "Troubleshooting",
+  "description": "Fix common prokodo CLI errors — missing API key, invalid config, timeout exceeded, permissions, and node version issues.",
+  "source": "@site/docs/troubleshooting.mdx",
+  "sourceDirName": ".",
+  "slug": "/troubleshooting",
+  "permalink": "/docs/troubleshooting",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/troubleshooting.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "id": "troubleshooting",
+    "title": "Troubleshooting",
+    "sidebar_position": 10,
+    "description": "Fix common prokodo CLI errors — missing API key, invalid config, timeout exceeded, permissions, and node version issues.",
+    "keywords": [
+      "prokodo troubleshooting",
+      "prokodo CLI errors",
+      "prokodo error fix",
+      "prokodo API key error",
+      "prokodo CLI debug"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "🔄 CI/CD Integration",
+    "permalink": "/docs/ci-cd"
+  },
+  "next": {
+    "title": "🏷 Versions",
+    "permalink": "/docs/versions"
+  }
+}

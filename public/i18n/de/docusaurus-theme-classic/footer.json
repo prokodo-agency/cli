@@ -1,0 +1,86 @@
+{
+  "link.title.Docs": {
+    "message": "Dokumentation",
+    "description": "The title of the footer links column with title=Docs in the footer"
+  },
+  "link.title.Commands": {
+    "message": "Befehle",
+    "description": "The title of the footer links column with title=Commands in the footer"
+  },
+  "link.title.Releases": {
+    "message": "Releases",
+    "description": "The title of the footer links column with title=Releases in the footer"
+  },
+  "link.title.prokodo": {
+    "message": "prokodo",
+    "description": "The title of the footer links column with title=prokodo in the footer"
+  },
+  "link.item.label.Getting Started": {
+    "message": "Einstieg",
+    "description": "The label of footer link with label=Getting Started linking to /docs/getting-started/installation"
+  },
+  "link.item.label.Commands": {
+    "message": "Befehle",
+    "description": "The label of footer link with label=Commands linking to /docs/commands/overview"
+  },
+  "link.item.label.Configuration": {
+    "message": "Konfiguration",
+    "description": "The label of footer link with label=Configuration linking to /docs/configuration"
+  },
+  "link.item.label.CI/CD": {
+    "message": "CI/CD",
+    "description": "The label of footer link with label=CI/CD linking to /docs/ci-cd"
+  },
+  "link.item.label.auth": {
+    "message": "auth",
+    "description": "The label of footer link with label=auth linking to /docs/commands/auth"
+  },
+  "link.item.label.init": {
+    "message": "init",
+    "description": "The label of footer link with label=init linking to /docs/commands/init"
+  },
+  "link.item.label.verify": {
+    "message": "verify",
+    "description": "The label of footer link with label=verify linking to /docs/commands/verify"
+  },
+  "link.item.label.credits": {
+    "message": "credits",
+    "description": "The label of footer link with label=credits linking to /docs/commands/credits"
+  },
+  "link.item.label.doctor": {
+    "message": "doctor",
+    "description": "The label of footer link with label=doctor linking to /docs/commands/doctor"
+  },
+  "link.item.label.Versions": {
+    "message": "Versionen",
+    "description": "The label of footer link with label=Versions linking to /docs/versions"
+  },
+  "link.item.label.Changelog": {
+    "message": "Änderungsprotokoll",
+    "description": "The label of footer link with label=Changelog linking to /docs/changelog"
+  },
+  "link.item.label.npm": {
+    "message": "npm",
+    "description": "The label of footer link with label=npm linking to https://www.npmjs.com/package/@prokodo/cli"
+  },
+  "link.item.label.GitHub Releases": {
+    "message": "GitHub Releases",
+    "description": "The label of footer link with label=GitHub Releases linking to https://github.com/prokodo-agency/cli/releases"
+  },
+  "link.item.label.Marketplace": {
+    "message": "Marketplace",
+    "description": "The label of footer link with label=Marketplace linking to https://www.n8n-marketplace.prokodo.com"
+  },
+  "link.item.label.Website": {
+    "message": "Website",
+    "description": "The label of footer link with label=Website linking to https://www.prokodo.com"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/prokodo-agency"
+  },
+  "copyright": {
+    "message": "Copyright \u00a9 {year} prokodo. Erstellt mit Docusaurus.",
+    "description": "The footer copyright"
+  }
+}

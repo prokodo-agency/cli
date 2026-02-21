@@ -1,0 +1,39 @@
+{
+  "id": "configuration",
+  "title": "Configuration",
+  "description": "Configure the prokodo CLI per-project using .prokodo/config.json — all supported fields, types, and default values.",
+  "source": "@site/docs/configuration.mdx",
+  "sourceDirName": ".",
+  "slug": "/configuration",
+  "permalink": "/docs/configuration",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/configuration.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "id": "configuration",
+    "title": "Configuration",
+    "sidebar_position": 8,
+    "description": "Configure the prokodo CLI per-project using .prokodo/config.json — all supported fields, types, and default values.",
+    "keywords": [
+      "prokodo configuration",
+      "prokodo config.json",
+      "prokodo CLI config",
+      ".prokodo/config.json",
+      "prokodo verifyGlobs"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "🌐 Global Options",
+    "permalink": "/docs/global-options"
+  },
+  "next": {
+    "title": "🔄 CI/CD Integration",
+    "permalink": "/docs/ci-cd"
+  }
+}

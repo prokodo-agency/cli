@@ -1,0 +1,39 @@
+{
+  "id": "commands/credits",
+  "title": "credits",
+  "description": "Aktuelles prokodo-Guthaben und Nutzungshistorie mit prokodo credits abrufen.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/commands/credits.mdx",
+  "sourceDirName": "commands",
+  "slug": "/commands/credits",
+  "permalink": "/de/docs/commands/credits",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/commands/credits.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "id": "credits",
+    "title": "credits",
+    "sidebar_position": 5,
+    "description": "Aktuelles prokodo-Guthaben und Nutzungshistorie mit prokodo credits abrufen.",
+    "keywords": [
+      "prokodo credits",
+      "prokodo Guthaben",
+      "prokodo Nutzung",
+      "prokodo credits Befehl",
+      "prokodo Konto"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "verify",
+    "permalink": "/de/docs/commands/verify"
+  },
+  "next": {
+    "title": "doctor",
+    "permalink": "/de/docs/commands/doctor"
+  }
+}

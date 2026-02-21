@@ -1,0 +1,39 @@
+{
+  "id": "getting-started/installation",
+  "title": "Installation",
+  "description": "prokodo CLI global installieren via npm, pnpm oder yarn — Systemanforderungen, Paketverwalterbefehle und Überprüfungsschritte.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/getting-started/installation.mdx",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/installation",
+  "permalink": "/de/docs/getting-started/installation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/getting-started/installation.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "installation",
+    "title": "Installation",
+    "sidebar_position": 1,
+    "description": "prokodo CLI global installieren via npm, pnpm oder yarn — Systemanforderungen, Paketverwalterbefehle und Überprüfungsschritte.",
+    "keywords": [
+      "prokodo CLI installieren",
+      "npm install prokodo",
+      "pnpm install prokodo CLI",
+      "prokodo CLI Setup",
+      "prokodo CLI Anforderungen"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "👋 Introduction",
+    "permalink": "/de/docs/"
+  },
+  "next": {
+    "title": "Schnellstart",
+    "permalink": "/de/docs/getting-started/quick-start"
+  }
+}

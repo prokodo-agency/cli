@@ -1,0 +1,74 @@
+---
+id: credits
+title: credits
+sidebar_position: 5
+description: Aktuelles prokodo-Guthaben und Nutzungshistorie mit prokodo credits abrufen.
+keywords: [prokodo credits, prokodo Guthaben, prokodo Nutzung, prokodo credits Befehl, prokodo Konto]
+---
+
+# credits
+
+`prokodo credits` gibt das verbleibende Guthaben und eine kurze Nutzungsübersicht zurück.
+
+## Verwendung
+
+```bash
+prokodo credits [Optionen]
+```
+
+## Optionen
+
+| Flag | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `--json` | Boolean | `false` | Maschinenlesbare Ausgabe aktivieren |
+
+## Anforderungen
+
+Ein gültiger API-Schlüssel (via `prokodo auth login` oder `PROKODO_API_KEY`).
+
+## Ausgabe (Standard)
+
+```
+Guthaben       42
+Genutzt gesamt  8
+Plan           Pro
+```
+
+## JSON-Schema
+
+```bash
+prokodo credits --json
+```
+
+```json
+{
+  "credits": {
+    "remaining": 42,
+    "used": 8,
+    "total": 50
+  },
+  "plan": "pro",
+  "accountId": "acc_123abc"
+}
+```
+
+| Feld | Typ | Beschreibung |
+|---|---|---|
+| `credits.remaining` | `number` | Verfügbares Guthaben |
+| `credits.used` | `number` | In diesem Abrechnungszeitraum genutztes Guthaben |
+| `credits.total` | `number` | Gesamtguthaben laut Abo |
+| `plan` | `string` | Aktueller Abonnement-Plan |
+| `accountId` | `string` | Interner prokodo-Konto-Identifikator |
+
+## Beispiele
+
+```bash
+# Interaktive Guthabenzusammenfassung
+prokodo credits
+
+# Für CI/Skripting
+GUTHABENSTAND=$(prokodo credits --json | jq '.credits.remaining')
+if [ "$GUTHABENSTAND" -lt 5 ]; then
+  echo "Warnung: Guthaben wird knapp!"
+fi
+```

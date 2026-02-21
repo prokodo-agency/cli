@@ -1,0 +1,70 @@
+---
+id: init
+title: init
+sidebar_position: 3
+description: prokodo-Projektkonfiguration mit prokodo init initialisieren — erstellt .prokodo/config.json im Projekt.
+keywords: [prokodo init, prokodo config, prokodo Projekt-Setup, prokodo init Befehl, .prokodo/config.json]
+---
+
+# init
+
+`prokodo init` erstellt eine `.prokodo/config.json`-Datei im aktuellen Verzeichnis (oder im mit `--cwd` angegebenen Pfad), die alle Laufeinstellungen für `prokodo verify` enthält.
+
+## Verwendung
+
+```bash
+prokodo init [Optionen]
+```
+
+## Optionen
+
+| Flag | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `--slug <slug>` | String | — | Projekt-Slug, wie er im prokodo Marketplace erscheint |
+| `--globs <muster>` | String[] | `["**/*"]` | Zu überprüfende Dateimuster (Glob-Syntax) |
+| `--timeout <sek>` | Number | `300` | Maximale Wartezeit in Sekunden für jeden Verifizierungslauf |
+| `--cwd <verz>` | String | `process.cwd()` | Verzeichnis, in dem die Konfigurationsdatei erstellt wird |
+| `--force` | Boolean | `false` | Bestehende Konfiguration überschreiben |
+| `--json` | Boolean | `false` | Maschinenlesbare Ausgabe aktivieren |
+
+## Verhalten
+
+1. Prüft, ob `.prokodo/config.json` bereits vorhanden ist — schlägt fehl, sofern `--force` nicht gesetzt ist
+2. Validiert `--slug` gegen bekannte Slug-Namenskonventionen
+3. Schreibt die Datei mit 2-Leerzeichen-Einrückung
+
+## Ausgabedatei-Schema
+
+```json
+{
+  "projectSlug": "mein-projekt",
+  "verifyGlobs": ["src/**/*", "public/**/*"],
+  "timeout": 300
+}
+```
+
+| Feld | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `projectSlug` | `string` | erforderlich | Eindeutiger Identifikator des Projekts im Marketplace |
+| `verifyGlobs` | `string[]` | `["**/*"]` | Glob-Muster für zu überprüfende Dateien |
+| `timeout` | `number` | `300` | Maximale Wartezeit in Sekunden |
+
+## Beispiele
+
+```bash
+# Grundlegende Initialisierung
+prokodo init --slug my-n8n-node
+
+# Mit benutzerdefinierten Globs
+prokodo init --slug my-n8n-node --globs "src/**/*" "package.json"
+
+# Konfiguration in einem anderen Verzeichnis erstellen
+prokodo init --cwd ./pakete/mein-node --slug my-n8n-node
+
+# Bestehende Konfiguration überschreiben
+prokodo init --slug my-n8n-node --force
+```
+
+:::tip
+Die Datei `.prokodo/config.json` kann bedenkenlos in die Versionskontrolle eingecheckt werden — sie enthält keine Geheimnisse.
+:::

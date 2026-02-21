@@ -1,0 +1,31 @@
+{
+  "id": "commands/overview",
+  "title": "Command Overview",
+  "description": "The prokodo CLI exposes five top-level commands.  Each is documented on its own page.",
+  "source": "@site/docs/commands/overview.md",
+  "sourceDirName": "commands",
+  "slug": "/commands/overview",
+  "permalink": "/cli/docs/commands/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/prokodo-cli/edit/main/website/docs/commands/overview.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "overview",
+    "title": "Command Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "Quick Start",
+    "permalink": "/cli/docs/getting-started/quick-start"
+  },
+  "next": {
+    "title": "auth",
+    "permalink": "/cli/docs/commands/auth"
+  }
+}

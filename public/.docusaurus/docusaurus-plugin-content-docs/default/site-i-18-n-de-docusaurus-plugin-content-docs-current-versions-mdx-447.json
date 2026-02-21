@@ -1,0 +1,38 @@
+{
+  "id": "versions",
+  "title": "Versionen & Releasestrategie",
+  "description": "Versionshistorie, npm-Release-Rhythmus und Upgrade-Anleitungen für die prokodo CLI.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/versions.mdx",
+  "sourceDirName": ".",
+  "slug": "/versions",
+  "permalink": "/de/docs/versions",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/versions.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 12,
+  "frontMatter": {
+    "id": "versions",
+    "title": "Versionen & Releasestrategie",
+    "sidebar_position": 12,
+    "description": "Versionshistorie, npm-Release-Rhythmus und Upgrade-Anleitungen für die prokodo CLI.",
+    "keywords": [
+      "prokodo CLI Versionen",
+      "prokodo CLI npm",
+      "prokodo CLI Upgrade",
+      "prokodo Semantic Versioning"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "🛠 Troubleshooting",
+    "permalink": "/de/docs/troubleshooting"
+  },
+  "next": {
+    "title": "📋 Changelog",
+    "permalink": "/de/docs/changelog"
+  }
+}

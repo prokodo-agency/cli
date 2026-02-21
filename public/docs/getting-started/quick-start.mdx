@@ -1,0 +1,91 @@
+---
+id: quick-start
+title: Quick Start
+sidebar_position: 2
+description: Get from zero to a successful cloud verification in under five minutes with the prokodo CLI quick-start guide.
+keywords: [prokodo CLI quick start, prokodo CLI tutorial, prokodo verify guide, getting started prokodo CLI]
+---
+
+# Quick Start
+
+This guide gets you from zero to a successful cloud verification in under five minutes.
+
+## Step 1 — Install
+
+```bash
+npm install -g @prokodo/cli
+```
+
+## Step 2 — Get your API key
+
+1. Log in to the [prokodo marketplace](https://www.n8n-marketplace.prokodo.com)
+2. Go to **Account → API Keys**
+3. Click **Create new key** and copy the value — it starts with `pk_live_`
+
+:::warning
+API keys are shown only once.  Store your key securely (e.g. in a password manager or a CI secret).
+:::
+
+## Step 3 — Authenticate
+
+```bash
+prokodo auth login --key pk_live_yourkeyhere
+```
+
+The CLI validates the key against the prokodo API and stores it at `~/.config/prokodo/credentials.json` with `0600` permissions.
+
+Confirm it was saved:
+
+```bash
+prokodo auth whoami
+# → API key: ••••••••abcd
+```
+
+## Step 4 — Initialise your project
+
+Inside your project directory, run:
+
+```bash
+cd /path/to/my-project
+prokodo init --slug my-project
+```
+
+This creates `.prokodo/config.json`:
+
+```json
+{
+  "projectSlug": "my-project",
+  "verifyGlobs": ["src/**/*", "public/**/*"],
+  "timeout": 300
+}
+```
+
+Commit this file to version control — it is safe to share.
+
+## Step 5 — Verify
+
+```bash
+prokodo verify
+```
+
+The CLI will:
+1. Collect files matching `verifyGlobs`
+2. Upload them to the prokodo cloud
+3. Stream live logs while the run is in progress
+4. Print the result and exit with `0` (pass) or `1` (fail)
+
+## All done!
+
+```bash
+# Check your balance after the run
+prokodo credits
+
+# Run a full environment health-check
+prokodo doctor --json | jq .
+```
+
+## Next steps
+
+- [Command reference](../commands/overview) — full flag documentation for every command
+- [Global options](../global-options) — `--json`, `--api-key`, `--verbose`, and more
+- [CI/CD integration](../ci-cd) — using the CLI in GitHub Actions and other pipelines

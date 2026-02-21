@@ -80,10 +80,35 @@ jobs:
           } > CHANGELOG.tmp
           mv CHANGELOG.tmp CHANGELOG.md
 
-      - name: Commit, tag and push
+      # Mirror the new entry into the docs changelog page so the deployed
+      # site is always up to date after the bump commit triggers docs.yml.
+      - name: Sync changelog to docs page
         shell: bash
         run: |
-          git add package.json CHANGELOG.md
-          git commit -m "chore: release ${{ steps.ver.outputs.tag }}"
+          VER="${{ steps.ver.outputs.version }}"
+          TAG="${{ steps.ver.outputs.tag }}"
+          DATE=$(date -u +%Y-%m-%d)
+          REPO="https://github.com/${{ github.repository }}"
+          PREV=$(git describe --tags --abbrev=0 2>/dev/null || true)
+
+          if [ -n "$PREV" ]; then
+            COMPARE_URL="${REPO}/compare/${PREV}...${TAG}"
+            LOG=$(git log "${PREV}..HEAD" --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+          else
+            COMPARE_URL="${REPO}/releases/tag/${TAG}"
+            LOG=$(git log --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+          fi
+
+          [ -z "$LOG" ] && LOG="- Initial release"
+
+          ENTRY=$(printf "## [%s](%s) — %s\n\n%s\n" "${VER}" "${COMPARE_URL}" "${DATE}" "${LOG}")
+
+          # Insert the new entry before the first existing '## [' release heading,
+          # which preserves the MDX frontmatter and intro text intact.
+          awk -v entry="$ENTRY" '
+            /^## \[/ && !done { print entry; done=1 }
+            { print }
+          ' public/docs/changelog.mdx > public/docs/changelog.mdx.tmp
+          mv public/docs/changelog.mdx.tmp public/docs/changelog.mdx public/docs/changelog.mdx
           git tag "${{ steps.ver.outputs.tag }}"
           git push origin HEAD:${{ github.ref_name }} --follow-tags

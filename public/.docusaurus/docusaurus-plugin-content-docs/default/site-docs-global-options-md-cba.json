@@ -1,0 +1,31 @@
+{
+  "id": "global-options",
+  "title": "Global Options",
+  "description": "Every prokodo CLI command accepts these options in addition to its own flags.  Pass them before or after the command name.",
+  "source": "@site/docs/global-options.md",
+  "sourceDirName": ".",
+  "slug": "/global-options",
+  "permalink": "/cli/docs/global-options",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/prokodo-cli/edit/main/website/docs/global-options.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "id": "global-options",
+    "title": "Global Options",
+    "sidebar_position": 7
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "doctor",
+    "permalink": "/cli/docs/commands/doctor"
+  },
+  "next": {
+    "title": "⚙️ Configuration",
+    "permalink": "/cli/docs/configuration"
+  }
+}

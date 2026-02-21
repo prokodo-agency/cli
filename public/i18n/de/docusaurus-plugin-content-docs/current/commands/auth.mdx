@@ -1,0 +1,78 @@
+---
+id: auth
+title: auth
+sidebar_position: 2
+description: API-Schlüssel mit dem auth-Befehl verwalten — login, logout und whoami-Unterbefehle erklärt.
+keywords: [prokodo auth, prokodo API-Schlüssel, prokodo auth login, prokodo auth logout, prokodo CLI Authentifizierung]
+---
+
+# auth
+
+Der `auth`-Befehl verwaltet den prokodo API-Schlüssel in deiner lokalen Umgebung.
+
+## Unterbefehle
+
+### `auth login`
+
+Schlüssel speichern und gegen die API validieren.
+
+```bash
+prokodo auth login --key <schluessel>
+```
+
+| Flag | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `--key` | String | — | prokodo API-Schlüssel (beginnt mit `pk_live_` oder `pk_test_`) |
+
+Der Schlüssel wird in `~/.config/prokodo/credentials.json` mit `0600`-Dateiberechtigungen gespeichert, sodass keine anderen Nutzer ihn lesen können.
+
+:::tip
+In CI/CD-Umgebungen wird empfohlen, die Umgebungsvariable `PROKODO_API_KEY` zu verwenden, anstatt `auth login` auszuführen. Die CLI liest diese automatisch aus.
+:::
+
+### `auth logout`
+
+Gespeicherten Schlüssel aus dem lokalen System entfernen.
+
+```bash
+prokodo auth logout
+```
+
+Kein Flag erforderlich. Nach der Abmeldung schlägt jeder Befehl fehl, der einen gültigen Schlüssel benötigt, sofern nicht `PROKODO_API_KEY` gesetzt ist.
+
+### `auth whoami`
+
+Den aktuell konfigurierten Schlüssel anzeigen (teilweise verborgen).
+
+```bash
+prokodo auth whoami
+# → API key: ••••••••abcd  (Quelle: credentials.json)
+```
+
+Wenn kein Schlüssel konfiguriert ist:
+
+```
+✗ Kein API-Schlüssel konfiguriert.
+  Führe `prokodo auth login --key <schluessel>` aus oder setze PROKODO_API_KEY.
+```
+
+## Speicherort der Zugangsdaten
+
+| Betriebssystem | Pfad |
+|---|---|
+| macOS / Linux | `~/.config/prokodo/credentials.json` |
+| Windows | `%APPDATA%\prokodo\credentials.json` |
+
+## JSON-Ausgabe
+
+```bash
+prokodo auth whoami --json
+```
+
+```json
+{
+  "key": "••••••••abcd",
+  "source": "credentials.json",
+  "valid": true
+}
+```

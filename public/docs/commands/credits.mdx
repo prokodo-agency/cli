@@ -1,0 +1,74 @@
+---
+id: credits
+title: credits
+sidebar_position: 5
+description: Check your current prokodo credit balance and usage history with the prokodo credits command.
+keywords: [prokodo credits, prokodo balance, prokodo usage, prokodo credits command, prokodo account]
+---
+
+# `prokodo credits`
+
+Show your current credit balance.
+
+```bash
+prokodo credits [global options]
+```
+
+## Description
+
+Connects to the prokodo API using the resolved API key and prints your current balance.
+
+## Requirements
+
+An API key must be configured via one of the [standard priority sources](auth#auth-whoami):
+
+1. `--api-key` global flag
+2. `PROKODO_API_KEY` environment variable
+3. `~/.config/prokodo/credentials.json`
+
+If none are found in non-interactive mode, the command exits `2`.
+
+## Examples
+
+```bash
+prokodo credits
+# ℹ Balance: 42 credits
+```
+
+```bash
+prokodo credits --json
+# → { "balance": 42, "unit": "credits", "stub": false }
+```
+
+```bash
+# Use in a script to gate a workflow
+BALANCE=$(prokodo credits --json | jq .balance)
+if [[ "$BALANCE" -lt 5 ]]; then
+  echo "Credits too low to run verification"
+  exit 1
+fi
+```
+
+## JSON output schema
+
+```json
+{
+  "balance": 42,
+  "unit": "credits",
+  "stub": false
+}
+```
+
+| Field | Description |
+|---|---|
+| `balance` | Current numeric credit balance |
+| `unit` | Unit string (e.g. `"credits"`) |
+| `stub` | `true` if the credits system is in preview mode |
+
+## Exit codes
+
+| Code | Cause |
+|---|---|
+| `0` | Balance retrieved successfully |
+| `2` | No API key configured |
+| `1` | API request failed |

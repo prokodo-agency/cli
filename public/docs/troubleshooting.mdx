@@ -1,0 +1,205 @@
+---
+id: troubleshooting
+title: Troubleshooting
+sidebar_position: 10
+description: Fix common prokodo CLI errors — missing API key, invalid config, timeout exceeded, permissions, and node version issues.
+keywords: [prokodo troubleshooting, prokodo CLI errors, prokodo error fix, prokodo API key error, prokodo CLI debug]
+---
+
+# Troubleshooting
+
+Common errors and how to fix them.
+
+---
+
+## No API key configured
+
+**Error messages**
+```
+Error: No API key configured. Run `prokodo auth login` or set PROKODO_API_KEY.
+```
+```json
+{ "error": "No API key configured", "exitCode": 2 }
+```
+
+**Cause:** None of the three key sources (flag, env var, credentials file) contained a valid key.
+
+**Fix:**
+```bash
+# Option A — Store it permanently
+prokodo auth login --key pk_live_yourkey
+
+# Option B — Set it for the session
+export PROKODO_API_KEY=pk_live_yourkey
+
+# Option C — Pass it inline (one-off)
+prokodo verify --api-key pk_live_yourkey
+```
+
+---
+
+## No `.prokodo/config.json` found
+
+**Error message**
+```
+Error: No config found. Run `prokodo init` to create one.
+```
+
+**Cause:** `verify` or `doctor` was run from a directory that does not contain `.prokodo/config.json`.
+
+**Fix:**
+```bash
+# Create a config in the current directory
+prokodo init --slug my-project
+
+# Or move to the right directory first
+cd /path/to/my-project
+prokodo verify
+```
+
+---
+
+## Invalid API key shape
+
+**Error message**
+```
+Error: Invalid API key format. Expected ≥8 characters, no placeholders like <key>.
+```
+
+**Cause:** The key fails shape validation — too short, or still contains the `<key>` placeholder.
+
+**Fix:** Copy the key directly from the prokodo dashboard without the surrounding `<>` characters.
+
+---
+
+## Invalid `--timeout` value
+
+**Error message**
+```
+Error: --timeout must be a positive finite number
+```
+
+**Cause:** A non-numeric or non-positive value was passed to `--timeout`.
+
+**Fix:**
+```bash
+prokodo verify --timeout 300    # 5 minutes
+prokodo verify --timeout 600    # 10 minutes
+```
+
+---
+
+## Verification timed out
+
+**Error message**
+```
+Error: Verification timed out after 300 seconds.
+```
+
+**Cause:** The cloud run did not complete within the configured timeout.
+
+**Fix:**
+```bash
+# Increase timeout in config
+# .prokodo/config.json:
+# { "timeout": 600 }
+
+# Or override per-run:
+prokodo verify --timeout 600
+```
+
+---
+
+## API unreachable
+
+**Error message**
+```
+Error: Unable to reach the prokodo API at https://www.n8n-marketplace.prokodo.com
+```
+```json
+{ "name": "API reachability", "passed": false, "detail": "Connection refused" }
+```
+
+**Cause:** Network connectivity issue, firewall rule, or a temporary API outage.
+
+**Fix:**
+1. Run `prokodo doctor` to see the exact detail message
+2. Check your internet connection
+3. Check [status.prokodo.com](https://status.prokodo.com) for outages
+4. If behind a proxy, set `HTTPS_PROXY` or `--api-url` to route traffic correctly:
+   ```bash
+   HTTPS_PROXY=http://proxy.corp.example.com:3128 prokodo verify
+   ```
+
+---
+
+## Node version too old
+
+**Error message (from `doctor`)**
+```
+✗  Node version    v16.x.x (required ≥ 22)
+```
+
+**Fix:** Install Node.js ≥ 22 via [nodejs.org](https://nodejs.org) or a version manager:
+
+```bash
+# nvm
+nvm install 22 && nvm use 22
+
+# fnm
+fnm install 22 && fnm use 22
+```
+
+---
+
+## Command not found after install
+
+**Error message**
+```
+zsh: command not found: prokodo
+```
+
+**Cause:** The npm global binary directory is not in `$PATH`.
+
+**Fix:**
+```bash
+# Find the npm global bin directory
+npm bin -g
+# → typically /usr/local/bin or ~/.npm-global/bin
+
+# Add it to your shell profile
+echo 'export PATH="$(npm bin -g):$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Or use `npx` as a one-off:
+
+```bash
+npx prokodo verify
+```
+
+---
+
+## Permissions error on credentials file
+
+**Error message**
+```
+Warning: Credentials file has insecure permissions (should be 0600)
+```
+
+**Fix:**
+```bash
+chmod 0600 ~/.config/prokodo/credentials.json
+```
+
+---
+
+## Still stuck?
+
+Run diagnostics and share the output:
+
+```bash
+prokodo doctor --json --verbose 2>&1
+```
+
+Then open an issue at [github.com/prokodo-agency/cli](https://github.com/prokodo-agency/cli) with the output (redact your API key hint if needed).

@@ -1,0 +1,88 @@
+---
+id: configuration
+title: Konfiguration
+sidebar_position: 8
+description: prokodo CLI per Projekt über .prokodo/config.json konfigurieren — alle unterstützten Felder, Typen und Standardwerte.
+keywords: [prokodo Konfiguration, prokodo config.json, prokodo CLI Konfiguration, .prokodo/config.json, prokodo verifyGlobs]
+---
+
+# Konfiguration
+
+Die prokodo CLI liest ihre projektspezifischen Einstellungen aus `.prokodo/config.json` im Stammverzeichnis des Projekts.
+
+## Konfigurationsdatei erstellen
+
+```bash
+prokodo init --slug mein-projekt
+```
+
+Hierdurch wird die Datei mit sinnvollen Standardwerten erstellt. Sie kann anschließend manuell bearbeitet werden.
+
+## Schema
+
+```json
+{
+  "projectSlug": "mein-projekt",
+  "verifyGlobs": ["src/**/*", "package.json"],
+  "timeout": 300
+}
+```
+
+## Feldreferenz
+
+| Feld | Typ | Standard | Erforderlich | Beschreibung |
+|---|---|---|---|---|
+| `projectSlug` | `string` | — | Ja | Eindeutiger Projekt-Identifikator aus dem prokodo Marketplace |
+| `verifyGlobs` | `string[]` | `["**/*"]` | Nein | Glob-Muster, die bestimmen, welche Dateien hochgeladen werden |
+| `timeout` | `number` | `300` | Nein | Maximale Wartezeit in Sekunden für einen Verifizierungslauf |
+
+## Glob-Muster
+
+Globs werden mit [micromatch](https://github.com/micromatch/micromatch) ausgewertet. Ausschlussmuster beginnen mit `!`.
+
+```json
+{
+  "verifyGlobs": [
+    "src/**/*",
+    "package.json",
+    "README.md",
+    "!**/*.test.*",
+    "!**/*.spec.*",
+    "!node_modules/**",
+    "!dist/**"
+  ]
+}
+```
+
+:::tip
+Testdateien und `node_modules/` immer ausschließen — dies reduziert die Upload-Größe und beschleunigt die Verifizierung.
+:::
+
+## Vollständiges Beispiel
+
+```json
+{
+  "projectSlug": "mein-n8n-node",
+  "verifyGlobs": [
+    "src/**/*",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "!src/**/*.test.*",
+    "!src/**/*.spec.*"
+  ],
+  "timeout": 180
+}
+```
+
+## Versionskontrolle
+
+`.prokodo/config.json` enthält keine Geheimnisse und kann bedenkenlos eingecheckt werden:
+
+```bash
+# .gitignore — diese Zeile NICHT hinzufügen (Konfiguration soll versioniert werden)
+# .prokodo/config.json  ← Nicht ignorieren
+
+# Zugangsdaten NIEMALS einchecken:
+echo "~/.config/prokodo/" >> ~/.gitignore_global
+```

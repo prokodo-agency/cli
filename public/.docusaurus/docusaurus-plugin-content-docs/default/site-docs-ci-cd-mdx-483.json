@@ -1,0 +1,39 @@
+{
+  "id": "ci-cd",
+  "title": "CI / CD Integration",
+  "description": "Integrate the prokodo CLI into CI/CD pipelines — GitHub Actions, GitLab CI, environment variable setup, and best practices.",
+  "source": "@site/docs/ci-cd.mdx",
+  "sourceDirName": ".",
+  "slug": "/ci-cd",
+  "permalink": "/docs/ci-cd",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/cli/edit/main/public/docs/docs/ci-cd.mdx",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": null,
+  "lastUpdatedAt": null,
+  "sidebarPosition": 9,
+  "frontMatter": {
+    "id": "ci-cd",
+    "title": "CI / CD Integration",
+    "sidebar_position": 9,
+    "description": "Integrate the prokodo CLI into CI/CD pipelines — GitHub Actions, GitLab CI, environment variable setup, and best practices.",
+    "keywords": [
+      "prokodo CI/CD",
+      "prokodo GitHub Actions",
+      "prokodo CI pipeline",
+      "prokodo automated verification",
+      "prokodo GitLab CI"
+    ]
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "⚙️ Configuration",
+    "permalink": "/docs/configuration"
+  },
+  "next": {
+    "title": "🛠 Troubleshooting",
+    "permalink": "/docs/troubleshooting"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "configuration",
+  "title": "Configuration",
+  "description": "The prokodo CLI uses a per-project configuration file: .prokodo/config.json.",
+  "source": "@site/docs/configuration.md",
+  "sourceDirName": ".",
+  "slug": "/configuration",
+  "permalink": "/cli/docs/configuration",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/prokodo-agency/prokodo-cli/edit/main/website/docs/configuration.md",
+  "tags": [],
+  "version": "current",
+  "lastUpdatedBy": "Author",
+  "lastUpdatedAt": 1539502055000,
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "id": "configuration",
+    "title": "Configuration",
+    "sidebar_position": 8
+  },
+  "sidebar": "cliSidebar",
+  "previous": {
+    "title": "🌐 Global Options",
+    "permalink": "/cli/docs/global-options"
+  },
+  "next": {
+    "title": "🔄 CI/CD Integration",
+    "permalink": "/cli/docs/ci-cd"
+  }
+}

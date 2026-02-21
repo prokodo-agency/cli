@@ -1,0 +1,124 @@
+---
+id: configuration
+title: Configuration
+sidebar_position: 8
+description: Configure the prokodo CLI per-project using .prokodo/config.json — all supported fields, types, and default values.
+keywords: [prokodo configuration, prokodo config.json, prokodo CLI config, .prokodo/config.json, prokodo verifyGlobs]
+---
+
+# Configuration
+
+The prokodo CLI uses a per-project configuration file: `.prokodo/config.json`.
+
+## The config file
+
+Create it with [`prokodo init`](commands/init), or write it manually:
+
+```json
+{
+  "projectSlug": "my-project",
+  "verifyGlobs": ["src/**/*", "public/**/*"],
+  "timeout": 300
+}
+```
+
+### Location
+
+The CLI looks for `.prokodo/config.json` starting from the **current working directory**.  It does **not** walk up to parent directories.  Run all commands from the project root (or the directory that contains `.prokodo/`).
+
+### Schema
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `projectSlug` | string | ✅ | Matches your project in the prokodo marketplace |
+| `verifyGlobs` | string[] | ✅ | Glob patterns for files to upload (relative to config dir) |
+| `timeout` | number | ✅ | Verification timeout in **seconds** |
+
+#### `projectSlug`
+
+- Lowercase alphanumeric + hyphens
+- Must match an existing project in your prokodo account
+- Derived from directory name by `prokodo init --defaults`
+
+```json
+"projectSlug": "acme-landing-page"
+```
+
+#### `verifyGlobs`
+
+Standard glob patterns (internally resolved with [fast-glob](https://github.com/mrmlnc/fast-glob)):
+
+```json
+"verifyGlobs": [
+  "src/**/*.ts",
+  "src/**/*.tsx",
+  "public/**/*",
+  "package.json",
+  "next.config.js"
+]
+```
+
+**Tips:**
+
+- Exclude `node_modules`, `dist`, and `.next` — they are automatically ignored
+- Only include files that affect your verification outcome
+- Smaller file sets = faster runs = fewer credits consumed
+
+#### `timeout`
+
+Seconds the CLI will wait for the cloud run to complete before reporting a **timeout failure** (exit `1`).
+
+```json
+"timeout": 600
+```
+
+Override per-run with the `--timeout` flag:
+
+```bash
+prokodo verify --timeout 120
+```
+
+## Version control
+
+`.prokodo/config.json` should be committed:
+
+```bash
+git add .prokodo/config.json
+git commit -m "chore: add prokodo config"
+```
+
+The credentials file (`~/.config/prokodo/credentials.json`) is stored **outside** your project and should never be committed.  As an extra safeguard, add to `.gitignore`:
+
+```gitignore
+# prokodo local credentials (should not exist here, but just in case)
+.prokodo/credentials.json
+```
+
+## Minimal example
+
+```json
+{
+  "projectSlug": "my-app",
+  "verifyGlobs": ["src/**/*"],
+  "timeout": 300
+}
+```
+
+## Full example
+
+```json
+{
+  "projectSlug": "acme-ecommerce",
+  "verifyGlobs": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*",
+    "lib/**/*",
+    "public/**/*",
+    "package.json",
+    "next.config.js",
+    "tailwind.config.ts"
+  ],
+  "timeout": 600
+}
+```
