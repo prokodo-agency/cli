@@ -9,29 +9,38 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
     name: Build & Deploy Docs
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
 
     steps:
       - name: Checkout CLI repo
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4.2.0
         with:
           version: '10'
 
-      - uses: actions/setup-node@v6.2.0
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
 
       - name: Get pnpm store directory
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4.2.2
+      - uses: actions/cache@v4
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-docs-${{ hashFiles('public/pnpm-lock.yaml') }}
@@ -46,11 +55,11 @@ jobs:
         working-directory: public
         run: pnpm build
 
-      - name: Add CNAME
-        run: echo "docs.cli.prokodo.com" > public/build/CNAME
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public/build
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public/build
+        id: deploy
+        uses: actions/deploy-pages@v4
