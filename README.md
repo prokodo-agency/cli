@@ -38,4 +38,3 @@ Full documentation — installation, all commands, configuration, CI/CD integrat
 ## License
 
 [MIT](./LICENSE) © 2026 [prokodo](https://www.prokodo.com)
-
