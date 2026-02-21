@@ -28,12 +28,7 @@ const SIZE_MAP: Record<HeadingProps['as'], HeadlineTypeProps> = {
 
 export default function Heading({ as, id, className, children }: HeadingProps): ReactNode {
   return (
-    <Headline
-      type={SIZE_MAP[as]}
-      id={id}
-      className={className}
-      animated={false}
-    >
+    <Headline type={SIZE_MAP[as]} id={id} className={className} animated={false}>
       {children}
     </Headline>
   );

@@ -111,7 +111,9 @@
   padding: 1.25rem 1.5rem;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
   text-decoration: none !important;
-  transition: border-color 200ms, box-shadow 200ms;
+  transition:
+    border-color 200ms,
+    box-shadow 200ms;
 }
 
 .codeStep:hover {
@@ -188,5 +190,7 @@
 
 .featureCardHost {
   height: 100%;
-  transition: border-color 200ms, box-shadow 200ms;
+  transition:
+    border-color 200ms,
+    box-shadow 200ms;
 }

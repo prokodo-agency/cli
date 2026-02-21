@@ -3,7 +3,14 @@ id: ci-cd
 title: CI/CD-Integration
 sidebar_position: 9
 description: prokodo CLI in CI/CD-Pipelines integrieren — GitHub Actions, GitLab CI, Umgebungsvariablen-Setup und Best Practices.
-keywords: [prokodo CI/CD, prokodo GitHub Actions, prokodo CI-Pipeline, prokodo automatische Verifizierung, prokodo GitLab CI]
+keywords:
+  [
+    prokodo CI/CD,
+    prokodo GitHub Actions,
+    prokodo CI-Pipeline,
+    prokodo automatische Verifizierung,
+    prokodo GitLab CI,
+  ]
 ---
 
 # CI/CD-Integration
@@ -49,23 +56,23 @@ Den `PROKODO_API_KEY` als [verschlüsseltes Secret](https://docs.github.com/de/a
 ### Mit gecachtem Schritt
 
 ```yaml
-      - name: prokodo CLI installieren (gecacht)
-        run: |
-          npm install -g @prokodo/cli
-          prokodo --version
+- name: prokodo CLI installieren (gecacht)
+  run: |
+    npm install -g @prokodo/cli
+    prokodo --version
 ```
 
 ### Ergebnis-Artefakt speichern
 
 ```yaml
-      - name: Verifizierung mit JSON-Ausgabe ausführen
-        run: prokodo verify --json > prokodo-ergebnis.json
+- name: Verifizierung mit JSON-Ausgabe ausführen
+  run: prokodo verify --json > prokodo-ergebnis.json
 
-      - name: Artefakt hochladen
-        uses: actions/upload-artifact@v4
-        with:
-          name: prokodo-ergebnis
-          path: prokodo-ergebnis.json
+- name: Artefakt hochladen
+  uses: actions/upload-artifact@v4
+  with:
+    name: prokodo-ergebnis
+    path: prokodo-ergebnis.json
 ```
 
 ## GitLab CI
@@ -107,18 +114,18 @@ jobs:
 
 ## Best Practices
 
-| Empfehlung | Grund |
-|---|---|
-| `PROKODO_API_KEY` als verschlüsseltes Secret speichern | Schlüssel nie in Logs sichtbar |
-| `prokodo doctor --json` als Schritt vor `verify` ausführen | Umgebungsfehler frühzeitig erkennen |
-| `--json`-Flag für alle CI-Aufrufe verwenden | Maschinenlesbare Logs |
-| Node 22 cachen | Schnellere Pipeline-Ausführungszeiten |
+| Empfehlung                                                 | Grund                                 |
+| ---------------------------------------------------------- | ------------------------------------- |
+| `PROKODO_API_KEY` als verschlüsseltes Secret speichern     | Schlüssel nie in Logs sichtbar        |
+| `prokodo doctor --json` als Schritt vor `verify` ausführen | Umgebungsfehler frühzeitig erkennen   |
+| `--json`-Flag für alle CI-Aufrufe verwenden                | Maschinenlesbare Logs                 |
+| Node 22 cachen                                             | Schnellere Pipeline-Ausführungszeiten |
 
 ## Lokale vs. CI-Umgebung
 
-| | Lokal | CI |
-|---|---|---|
-| API-Schlüssel | `~/.config/prokodo/credentials.json` | `PROKODO_API_KEY` Env-Variable |
-| Farbe | Aktiviert | Deaktiviert (automatisch erkannt oder `NO_COLOR=1`) |
-| Interaktive Eingabeaufforderungen | Ja (wenn TTY) | Nie |
-| Exit-Code-Sicherheit | Standard | Wichtig — Pipeline schlägt bei `!= 0` fehl |
+|                                   | Lokal                                | CI                                                  |
+| --------------------------------- | ------------------------------------ | --------------------------------------------------- |
+| API-Schlüssel                     | `~/.config/prokodo/credentials.json` | `PROKODO_API_KEY` Env-Variable                      |
+| Farbe                             | Aktiviert                            | Deaktiviert (automatisch erkannt oder `NO_COLOR=1`) |
+| Interaktive Eingabeaufforderungen | Ja (wenn TTY)                        | Nie                                                 |
+| Exit-Code-Sicherheit              | Standard                             | Wichtig — Pipeline schlägt bei `!= 0` fehl          |

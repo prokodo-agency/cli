@@ -3,7 +3,8 @@ id: quick-start
 title: Quick Start
 sidebar_position: 2
 description: Get from zero to a successful cloud verification in under five minutes with the prokodo CLI quick-start guide.
-keywords: [prokodo CLI quick start, prokodo CLI tutorial, prokodo verify guide, getting started prokodo CLI]
+keywords:
+  [prokodo CLI quick start, prokodo CLI tutorial, prokodo verify guide, getting started prokodo CLI]
 ---
 
 # Quick Start
@@ -23,7 +24,7 @@ npm install -g @prokodo/cli
 3. Click **Create new key** and copy the value — it starts with `pk_live_`
 
 :::warning
-API keys are shown only once.  Store your key securely (e.g. in a password manager or a CI secret).
+API keys are shown only once. Store your key securely (e.g. in a password manager or a CI secret).
 :::
 
 ## Step 3 — Authenticate
@@ -69,6 +70,7 @@ prokodo verify
 ```
 
 The CLI will:
+
 1. Collect files matching `verifyGlobs`
 2. Upload them to the prokodo cloud
 3. Stream live logs while the run is in progress

@@ -97,12 +97,7 @@ function HeroSection(): ReactNode {
       <div className="container">
         <h1 className={styles.heroTitle}>
           {/* Image is decorative — visually hidden span carries the text for SEO */}
-          <img
-            src={logoSrc}
-            alt=""
-            aria-hidden="true"
-            className={styles.heroWordmark}
-          />
+          <img src={logoSrc} alt="" aria-hidden="true" className={styles.heroWordmark} />
           <span className={styles.heroSrOnly}>prokodo</span>
           {' CLI'}
         </h1>

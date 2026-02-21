@@ -4,7 +4,8 @@ title: Introduction
 slug: /
 sidebar_position: 1
 description: Official documentation for the prokodo CLI — authenticate, configure, verify and manage your prokodo projects directly from the terminal.
-keywords: [prokodo CLI, CLI documentation, prokodo command line, n8n marketplace CLI, prokodo terminal]
+keywords:
+  [prokodo CLI, CLI documentation, prokodo command line, n8n marketplace CLI, prokodo terminal]
 ---
 
 import Admonition from '@theme/Admonition';
@@ -15,13 +16,13 @@ The **prokodo CLI** is the official command-line interface for the [prokodo mark
 
 ## What can you do with it?
 
-| Command | Purpose |
-|---|---|
-| [`auth`](commands/auth) | Store, rotate, and inspect API keys |
-| [`init`](commands/init) | Scaffold `.prokodo/config.json` in your project |
-| [`verify`](commands/verify) | Upload project files and run a cloud verification |
-| [`credits`](commands/credits) | Check your credit balance |
-| [`doctor`](commands/doctor) | Diagnose your environment in one command |
+| Command                       | Purpose                                           |
+| ----------------------------- | ------------------------------------------------- |
+| [`auth`](commands/auth)       | Store, rotate, and inspect API keys               |
+| [`init`](commands/init)       | Scaffold `.prokodo/config.json` in your project   |
+| [`verify`](commands/verify)   | Upload project files and run a cloud verification |
+| [`credits`](commands/credits) | Check your credit balance                         |
+| [`doctor`](commands/doctor)   | Diagnose your environment in one command          |
 
 ## Design principles
 
@@ -47,5 +48,6 @@ prokodo verify
 ```
 
 <Admonition type="tip">
-  Run <code>prokodo doctor</code> at any time to get a full health-check of your environment, credentials, and API connectivity.
+  Run <code>prokodo doctor</code> at any time to get a full health-check of your environment,
+  credentials, and API connectivity.
 </Admonition>

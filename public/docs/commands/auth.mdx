@@ -3,7 +3,14 @@ id: auth
 title: auth
 sidebar_position: 2
 description: Manage your prokodo API key with the auth command — login, logout, and status sub-commands explained.
-keywords: [prokodo auth, prokodo API key, prokodo auth login, prokodo auth logout, prokodo CLI authentication]
+keywords:
+  [
+    prokodo auth,
+    prokodo API key,
+    prokodo auth login,
+    prokodo auth logout,
+    prokodo CLI authentication,
+  ]
 ---
 
 # `prokodo auth`
@@ -26,8 +33,8 @@ prokodo auth login --key <key>
 
 **Options**
 
-| Flag | Type | Description |
-|---|---|---|
+| Flag          | Type   | Description                                               |
+| ------------- | ------ | --------------------------------------------------------- |
 | `--key <key>` | string | API key to store. Omit to enter interactively (TTY only). |
 
 **Behaviour**
@@ -51,15 +58,15 @@ prokodo auth login --key pk_live_abc123xyz789 --json
 
 **Exit codes**
 
-| Code | Cause |
-|---|---|
-| `0` | Key stored successfully |
-| `2` | No key provided in non-interactive mode |
-| `2` | Key fails shape validation |
-| `1` | API rejected the key |
+| Code | Cause                                   |
+| ---- | --------------------------------------- |
+| `0`  | Key stored successfully                 |
+| `2`  | No key provided in non-interactive mode |
+| `2`  | Key fails shape validation              |
+| `1`  | API rejected the key                    |
 
 :::note
-When `stdin` is not a TTY (CI, Docker, pipe), the `--key` flag is required.  The CLI will exit `2` with an explanatory message if it is omitted.
+When `stdin` is not a TTY (CI, Docker, pipe), the `--key` flag is required. The CLI will exit `2` with an explanatory message if it is omitted.
 :::
 
 ---
@@ -123,9 +130,9 @@ PROKODO_API_KEY=pk_live_test prokodo auth whoami --json
 
 ## Credentials file location
 
-| Platform | Path |
-|---|---|
+| Platform      | Path                                 |
+| ------------- | ------------------------------------ |
 | macOS / Linux | `~/.config/prokodo/credentials.json` |
-| Windows | `%APPDATA%\prokodo\credentials.json` |
+| Windows       | `%APPDATA%\prokodo\credentials.json` |
 
-The file is created with `0600` permissions on POSIX systems.  A warning is printed on startup if permissions are more permissive.
+The file is created with `0600` permissions on POSIX systems. A warning is printed on startup if permissions are more permissive.

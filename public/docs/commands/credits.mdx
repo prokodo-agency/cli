@@ -3,7 +3,8 @@ id: credits
 title: credits
 sidebar_position: 5
 description: Check your current prokodo credit balance and usage history with the prokodo credits command.
-keywords: [prokodo credits, prokodo balance, prokodo usage, prokodo credits command, prokodo account]
+keywords:
+  [prokodo credits, prokodo balance, prokodo usage, prokodo credits command, prokodo account]
 ---
 
 # `prokodo credits`
@@ -59,16 +60,16 @@ fi
 }
 ```
 
-| Field | Description |
-|---|---|
-| `balance` | Current numeric credit balance |
-| `unit` | Unit string (e.g. `"credits"`) |
-| `stub` | `true` if the credits system is in preview mode |
+| Field     | Description                                     |
+| --------- | ----------------------------------------------- |
+| `balance` | Current numeric credit balance                  |
+| `unit`    | Unit string (e.g. `"credits"`)                  |
+| `stub`    | `true` if the credits system is in preview mode |
 
 ## Exit codes
 
-| Code | Cause |
-|---|---|
-| `0` | Balance retrieved successfully |
-| `2` | No API key configured |
-| `1` | API request failed |
+| Code | Cause                          |
+| ---- | ------------------------------ |
+| `0`  | Balance retrieved successfully |
+| `2`  | No API key configured          |
+| `1`  | API request failed             |

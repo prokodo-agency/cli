@@ -3,7 +3,14 @@ id: doctor
 title: doctor
 sidebar_position: 6
 description: Diagnose your local prokodo setup with prokodo doctor — checks Node version, credentials, config, and connectivity.
-keywords: [prokodo doctor, prokodo diagnose, prokodo environment check, prokodo doctor command, prokodo debug]
+keywords:
+  [
+    prokodo doctor,
+    prokodo diagnose,
+    prokodo environment check,
+    prokodo doctor command,
+    prokodo debug,
+  ]
 ---
 
 # `prokodo doctor`
@@ -16,13 +23,13 @@ prokodo doctor [global options]
 
 ## Checks performed
 
-| Check | What it verifies |
-|---|---|
-| **Node version** | Node.js ≥ 22 is installed |
-| **API key configured** | At least one key source is available (flag / env var / file) |
-| **.prokodo/config.json** | A valid config file exists in the current working directory |
-| **API reachability** | The prokodo API health endpoint responds within 10 seconds |
-| **API key valid** | (Only if a key is present) The key is accepted by the API |
+| Check                    | What it verifies                                             |
+| ------------------------ | ------------------------------------------------------------ |
+| **Node version**         | Node.js ≥ 22 is installed                                    |
+| **API key configured**   | At least one key source is available (flag / env var / file) |
+| **.prokodo/config.json** | A valid config file exists in the current working directory  |
+| **API reachability**     | The prokodo API health endpoint responds within 10 seconds   |
+| **API key valid**        | (Only if a key is present) The key is accepted by the API    |
 
 ## Examples
 
@@ -47,29 +54,38 @@ prokodo doctor --json
 {
   "passed": false,
   "checks": [
-    { "name": "Node version",          "passed": true,  "detail": "22.11.0 (required ≥ 22)" },
-    { "name": "API key configured",    "passed": false, "detail": "Source: none" },
-    { "name": ".prokodo/config.json",  "passed": false, "detail": "Config not found in /Users/you/my-project" },
-    { "name": "API reachability",      "passed": true,  "detail": "https://www.n8n-marketplace.prokodo.com → OK (v1.2.3)" }
+    { "name": "Node version", "passed": true, "detail": "22.11.0 (required ≥ 22)" },
+    { "name": "API key configured", "passed": false, "detail": "Source: none" },
+    {
+      "name": ".prokodo/config.json",
+      "passed": false,
+      "detail": "Config not found in /Users/you/my-project"
+    },
+    {
+      "name": "API reachability",
+      "passed": true,
+      "detail": "https://www.n8n-marketplace.prokodo.com → OK (v1.2.3)"
+    }
   ]
 }
 ```
 
 ## Exit codes
 
-| Code | Cause |
-|---|---|
-| `0` | All checks passed |
-| `1` | One or more checks failed |
+| Code | Cause                     |
+| ---- | ------------------------- |
+| `0`  | All checks passed         |
+| `1`  | One or more checks failed |
 
 :::tip
-`doctor` never exits `2` — it is designed to always produce output.  Use it in CI to surface problems early:
+`doctor` never exits `2` — it is designed to always produce output. Use it in CI to surface problems early:
 
 ```yaml
 - name: Environment health check
   run: prokodo doctor --json
-  continue-on-error: true   # report, don't fail the pipeline
+  continue-on-error: true # report, don't fail the pipeline
 ```
+
 :::
 
 ## Use in CI

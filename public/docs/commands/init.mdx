@@ -3,7 +3,8 @@ id: init
 title: init
 sidebar_position: 3
 description: Initialize a prokodo project configuration with prokodo init — creates .prokodo/config.json in your project.
-keywords: [prokodo init, prokodo config, prokodo project setup, prokodo init command, .prokodo/config.json]
+keywords:
+  [prokodo init, prokodo config, prokodo project setup, prokodo init command, .prokodo/config.json]
 ---
 
 # `prokodo init`
@@ -16,11 +17,11 @@ prokodo init [options]
 
 ## Options
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `--slug <slug>` | string | — | Project slug (skips prompt) |
-| `--defaults` | boolean | `false` | Accept all defaults; derive slug from directory name |
-| `--force` | boolean | `false` | Overwrite existing config |
+| Flag            | Type    | Default | Description                                          |
+| --------------- | ------- | ------- | ---------------------------------------------------- |
+| `--slug <slug>` | string  | —       | Project slug (skips prompt)                          |
+| `--defaults`    | boolean | `false` | Accept all defaults; derive slug from directory name |
+| `--force`       | boolean | `false` | Overwrite existing config                            |
 
 ## Behaviour
 
@@ -43,11 +44,11 @@ prokodo init [options]
 }
 ```
 
-| Field | Description |
-|---|---|
-| `projectSlug` | Identifies your project in the prokodo marketplace |
-| `verifyGlobs` | Glob patterns (relative to config directory) for files to upload |
-| `timeout` | Cloud verification timeout in seconds (can be overridden per-run with `--timeout`) |
+| Field         | Description                                                                        |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `projectSlug` | Identifies your project in the prokodo marketplace                                 |
+| `verifyGlobs` | Glob patterns (relative to config directory) for files to upload                   |
+| `timeout`     | Cloud verification timeout in seconds (can be overridden per-run with `--timeout`) |
 
 ## Examples
 
@@ -75,11 +76,11 @@ git add .prokodo/config.json
 git commit -m "chore: add prokodo config"
 ```
 
-Only `credentials.json` (in `~/.config/prokodo`) should never be committed.  Add `.prokodo/credentials.json` to `.gitignore` as a safety net (though the CLI stores credentials outside the project anyway).
+Only `credentials.json` (in `~/.config/prokodo`) should never be committed. Add `.prokodo/credentials.json` to `.gitignore` as a safety net (though the CLI stores credentials outside the project anyway).
 
 ## Exit codes
 
-| Code | Cause |
-|---|---|
-| `0` | Config created (or already exists and `--force` was not set) |
-| `2` | Empty slug derived or provided |
+| Code | Cause                                                        |
+| ---- | ------------------------------------------------------------ |
+| `0`  | Config created (or already exists and `--force` was not set) |
+| `2`  | Empty slug derived or provided                               |

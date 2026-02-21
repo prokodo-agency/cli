@@ -98,7 +98,11 @@ const config: Config = {
     image: 'img/prokodo-og.png',
 
     metadata: [
-      { name: 'keywords', content: 'prokodo CLI, prokodo command line, prokodo verify, n8n marketplace CLI, prokodo docs' },
+      {
+        name: 'keywords',
+        content:
+          'prokodo CLI, prokodo command line, prokodo verify, n8n marketplace CLI, prokodo docs',
+      },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:site', content: '@prokodo_agency' },
       { property: 'og:type', content: 'website' },

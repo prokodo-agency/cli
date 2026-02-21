@@ -3,7 +3,15 @@ id: global-options
 title: Globale Optionen
 sidebar_position: 7
 description: Globale CLI-Flags für jeden prokodo-Befehl — API-Schlüssel, Timeout, JSON-Modus, ausführliche Ausgabe und Farbsteuerung.
-keywords: [prokodo globale Optionen, prokodo CLI Flags, prokodo --json, prokodo --verbose, prokodo --timeout, prokodo CLI Optionen]
+keywords:
+  [
+    prokodo globale Optionen,
+    prokodo CLI Flags,
+    prokodo --json,
+    prokodo --verbose,
+    prokodo --timeout,
+    prokodo CLI Optionen,
+  ]
 ---
 
 # Globale Optionen
@@ -12,15 +20,15 @@ Diese Flags können mit jedem prokodo-Befehl verwendet werden.
 
 ## Optionsreferenz
 
-| Flag | Typ | Standard | Beschreibung |
-|---|---|---|---|
-| `--api-key <schluessel>` | String | `PROKODO_API_KEY` oder gespeichert | API-Schlüssel für diese Ausführung überschreiben |
-| `--timeout <sek>` | Number | `300` | Globaler Timeout (Sekunden) für API-Aufrufe |
-| `--json` | Boolean | `false` | Alle Ausgaben im JSON-Format auf stdout ausgeben |
-| `--verbose` | Boolean | `false` | Detaillierte interne Logs aktivieren |
-| `--no-color` | Boolean | `false` | ANSI-Farbcodes in der Ausgabe deaktivieren |
-| `--version` | — | — | CLI-Version ausgeben und beenden |
-| `--help` | — | — | Hilfebenachricht für den aktuellen Befehl ausgeben |
+| Flag                     | Typ     | Standard                           | Beschreibung                                       |
+| ------------------------ | ------- | ---------------------------------- | -------------------------------------------------- |
+| `--api-key <schluessel>` | String  | `PROKODO_API_KEY` oder gespeichert | API-Schlüssel für diese Ausführung überschreiben   |
+| `--timeout <sek>`        | Number  | `300`                              | Globaler Timeout (Sekunden) für API-Aufrufe        |
+| `--json`                 | Boolean | `false`                            | Alle Ausgaben im JSON-Format auf stdout ausgeben   |
+| `--verbose`              | Boolean | `false`                            | Detaillierte interne Logs aktivieren               |
+| `--no-color`             | Boolean | `false`                            | ANSI-Farbcodes in der Ausgabe deaktivieren         |
+| `--version`              | —       | —                                  | CLI-Version ausgeben und beenden                   |
+| `--help`                 | —       | —                                  | Hilfebenachricht für den aktuellen Befehl ausgeben |
 
 ## API-Schlüssel-Auflösungsreihenfolge
 
@@ -32,11 +40,11 @@ Die CLI löst den API-Schlüssel in dieser Reihenfolge auf (erste Übereinstimmu
 
 ## Umgebungsvariablen
 
-| Variable | Entsprechender Flag |
-|---|---|
-| `PROKODO_API_KEY` | `--api-key` |
-| `PROKODO_TIMEOUT` | `--timeout` |
-| `NO_COLOR` | `--no-color` (Standard: [no-color.org](https://no-color.org)) |
+| Variable          | Entsprechender Flag                                           |
+| ----------------- | ------------------------------------------------------------- |
+| `PROKODO_API_KEY` | `--api-key`                                                   |
+| `PROKODO_TIMEOUT` | `--timeout`                                                   |
+| `NO_COLOR`        | `--no-color` (Standard: [no-color.org](https://no-color.org)) |
 
 ## JSON-Modus
 

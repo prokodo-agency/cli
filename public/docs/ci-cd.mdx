@@ -3,7 +3,14 @@ id: ci-cd
 title: CI / CD Integration
 sidebar_position: 9
 description: Integrate the prokodo CLI into CI/CD pipelines — GitHub Actions, GitLab CI, environment variable setup, and best practices.
-keywords: [prokodo CI/CD, prokodo GitHub Actions, prokodo CI pipeline, prokodo automated verification, prokodo GitLab CI]
+keywords:
+  [
+    prokodo CI/CD,
+    prokodo GitHub Actions,
+    prokodo CI pipeline,
+    prokodo automated verification,
+    prokodo GitLab CI,
+  ]
 ---
 
 # CI / CD Integration
@@ -116,7 +123,7 @@ prokodo-verify:
     - prokodo doctor --json --no-color
     - prokodo verify --ref "$CI_COMMIT_SHA" --json --no-color
   variables:
-    PROKODO_API_KEY: $PROKODO_API_KEY   # set in GitLab CI/CD variables
+    PROKODO_API_KEY: $PROKODO_API_KEY # set in GitLab CI/CD variables
 ```
 
 ## CircleCI
@@ -140,19 +147,19 @@ jobs:
 
 ## Best practices
 
-| Recommendation | Reason |
-|---|---|
-| Use `PROKODO_API_KEY` env var | Never commit credentials; secrets are per-environment |
-| Pass `--json` | Structured output is easier to parse in subsequent steps |
-| Pass `--no-color` or set `NO_COLOR=1` | Prevents ANSI escape codes in CI logs |
-| Pass `--ref ${{ github.sha }}` | Tags runs with commit SHA for traceability in the dashboard |
-| Run `doctor` before `verify` | Surfaces environment problems early with clear messages |
+| Recommendation                        | Reason                                                      |
+| ------------------------------------- | ----------------------------------------------------------- |
+| Use `PROKODO_API_KEY` env var         | Never commit credentials; secrets are per-environment       |
+| Pass `--json`                         | Structured output is easier to parse in subsequent steps    |
+| Pass `--no-color` or set `NO_COLOR=1` | Prevents ANSI escape codes in CI logs                       |
+| Pass `--ref ${{ github.sha }}`        | Tags runs with commit SHA for traceability in the dashboard |
+| Run `doctor` before `verify`          | Surfaces environment problems early with clear messages     |
 
 ## Local development vs CI
 
-| Scenario | Auth method | Extra flags |
-|---|---|---|
-| Developer laptop | `prokodo auth login` → credentials file | — |
-| CI pipeline | `PROKODO_API_KEY` secret | `--json`, `--no-color` |
+| Scenario         | Auth method                             | Extra flags            |
+| ---------------- | --------------------------------------- | ---------------------- |
+| Developer laptop | `prokodo auth login` → credentials file | —                      |
+| CI pipeline      | `PROKODO_API_KEY` secret                | `--json`, `--no-color` |
 
-You never need `auth login` in CI.  The env var is read automatically with the same priority as the credentials file.
+You never need `auth login` in CI. The env var is read automatically with the same priority as the credentials file.

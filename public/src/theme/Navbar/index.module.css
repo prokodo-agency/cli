@@ -96,7 +96,11 @@
   right: 0.75rem;
   bottom: 0;
   height: 2px;
-  background: linear-gradient(112.34deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+  background: linear-gradient(
+    112.34deg,
+    var(--color-primary-500) 0%,
+    var(--color-secondary-500) 100%
+  );
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
@@ -151,7 +155,9 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-decoration: none;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
   line-height: 1;
 }
 

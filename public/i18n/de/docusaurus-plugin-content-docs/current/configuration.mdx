@@ -3,7 +3,14 @@ id: configuration
 title: Konfiguration
 sidebar_position: 8
 description: prokodo CLI per Projekt über .prokodo/config.json konfigurieren — alle unterstützten Felder, Typen und Standardwerte.
-keywords: [prokodo Konfiguration, prokodo config.json, prokodo CLI Konfiguration, .prokodo/config.json, prokodo verifyGlobs]
+keywords:
+  [
+    prokodo Konfiguration,
+    prokodo config.json,
+    prokodo CLI Konfiguration,
+    .prokodo/config.json,
+    prokodo verifyGlobs,
+  ]
 ---
 
 # Konfiguration
@@ -30,11 +37,11 @@ Hierdurch wird die Datei mit sinnvollen Standardwerten erstellt. Sie kann anschl
 
 ## Feldreferenz
 
-| Feld | Typ | Standard | Erforderlich | Beschreibung |
-|---|---|---|---|---|
-| `projectSlug` | `string` | — | Ja | Eindeutiger Projekt-Identifikator aus dem prokodo Marketplace |
-| `verifyGlobs` | `string[]` | `["**/*"]` | Nein | Glob-Muster, die bestimmen, welche Dateien hochgeladen werden |
-| `timeout` | `number` | `300` | Nein | Maximale Wartezeit in Sekunden für einen Verifizierungslauf |
+| Feld          | Typ        | Standard   | Erforderlich | Beschreibung                                                  |
+| ------------- | ---------- | ---------- | ------------ | ------------------------------------------------------------- |
+| `projectSlug` | `string`   | —          | Ja           | Eindeutiger Projekt-Identifikator aus dem prokodo Marketplace |
+| `verifyGlobs` | `string[]` | `["**/*"]` | Nein         | Glob-Muster, die bestimmen, welche Dateien hochgeladen werden |
+| `timeout`     | `number`   | `300`      | Nein         | Maximale Wartezeit in Sekunden für einen Verifizierungslauf   |
 
 ## Glob-Muster
 

@@ -53,15 +53,15 @@ export default function Footer(): ReactNode {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
-
         {/* Brand column */}
         <div className={styles.brand}>
-          <a href={PROKODO_URL} target="_blank" rel="noopener noreferrer" className={styles.brandLogoLink}>
-            <img
-              src="/img/prokodo-logo.webp"
-              alt="prokodo"
-              className={styles.brandLogoLight}
-            />
+          <a
+            href={PROKODO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.brandLogoLink}
+          >
+            <img src="/img/prokodo-logo.webp" alt="prokodo" className={styles.brandLogoLight} />
             <img
               src="/img/prokodo-logo-white.webp"
               alt="prokodo"
@@ -95,11 +95,7 @@ export default function Footer(): ReactNode {
               <ul className={styles.linkList}>
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    <DocLink
-                      to={link.to}
-                      href={link.href}
-                      className={styles.footerLink}
-                    >
+                    <DocLink to={link.to} href={link.href} className={styles.footerLink}>
                       {link.label}
                     </DocLink>
                   </li>
@@ -112,12 +108,14 @@ export default function Footer(): ReactNode {
 
       {/* Bottom bar */}
       <div className={styles.bottom}>
-        <p className={styles.copyright}>
-          Copyright © {new Date().getFullYear()} prokodo.
-        </p>
+        <p className={styles.copyright}>Copyright © {new Date().getFullYear()} prokodo.</p>
         <div className={styles.bottomLinks}>
-          <DocLink href={`${MARKETPLACE_URL}/en/legal/`} className={styles.bottomLink}>Legal</DocLink>
-          <DocLink href={`${MARKETPLACE_URL}/en/legal/imprint/`} className={styles.bottomLink}>Imprint</DocLink>
+          <DocLink href={`${MARKETPLACE_URL}/en/legal/`} className={styles.bottomLink}>
+            Legal
+          </DocLink>
+          <DocLink href={`${MARKETPLACE_URL}/en/legal/imprint/`} className={styles.bottomLink}>
+            Imprint
+          </DocLink>
         </div>
       </div>
     </footer>

@@ -4,7 +4,8 @@ title: Einführung
 slug: /
 sidebar_position: 1
 description: Offizielle Dokumentation der prokodo CLI — authentifizieren, konfigurieren, verifizieren und Projekte direkt vom Terminal aus verwalten.
-keywords: [prokodo CLI, CLI Dokumentation, prokodo Befehlszeile, n8n Marketplace CLI, prokodo Terminal]
+keywords:
+  [prokodo CLI, CLI Dokumentation, prokodo Befehlszeile, n8n Marketplace CLI, prokodo Terminal]
 ---
 
 import Admonition from '@theme/Admonition';
@@ -15,13 +16,13 @@ Die **prokodo CLI** ist die offizielle Befehlszeilenschnittstelle für den [prok
 
 ## Was kannst du damit machen?
 
-| Befehl | Zweck |
-|---|---|
-| [`auth`](commands/auth) | API-Schlüssel speichern, rotieren und prüfen |
-| [`init`](commands/init) | `.prokodo/config.json` im Projekt anlegen |
-| [`verify`](commands/verify) | Projektdateien hochladen und Cloud-Verifizierung starten |
-| [`credits`](commands/credits) | Guthaben abfragen |
-| [`doctor`](commands/doctor) | Umgebung mit einem Befehl diagnostizieren |
+| Befehl                        | Zweck                                                    |
+| ----------------------------- | -------------------------------------------------------- |
+| [`auth`](commands/auth)       | API-Schlüssel speichern, rotieren und prüfen             |
+| [`init`](commands/init)       | `.prokodo/config.json` im Projekt anlegen                |
+| [`verify`](commands/verify)   | Projektdateien hochladen und Cloud-Verifizierung starten |
+| [`credits`](commands/credits) | Guthaben abfragen                                        |
+| [`doctor`](commands/doctor)   | Umgebung mit einem Befehl diagnostizieren                |
 
 ## Designprinzipien
 
@@ -47,5 +48,6 @@ prokodo verify
 ```
 
 <Admonition type="tip">
-  Führe <code>prokodo doctor</code> jederzeit aus, um einen vollständigen Gesundheitscheck der Umgebung, Zugangsdaten und API-Verbindung zu erhalten.
+  Führe <code>prokodo doctor</code> jederzeit aus, um einen vollständigen Gesundheitscheck der
+  Umgebung, Zugangsdaten und API-Verbindung zu erhalten.
 </Admonition>

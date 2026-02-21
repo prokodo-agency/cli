@@ -50,9 +50,7 @@ function DocTbody({ children }: { children: ReactNode }) {
 function DocTr({ children }: { children: ReactNode }) {
   const section = useContext(TableSectionCtx);
   return (
-    <tr className={section === 'head' ? 'docs-table__head-tr' : 'docs-table__tr'}>
-      {children}
-    </tr>
+    <tr className={section === 'head' ? 'docs-table__head-tr' : 'docs-table__tr'}>{children}</tr>
   );
 }
 

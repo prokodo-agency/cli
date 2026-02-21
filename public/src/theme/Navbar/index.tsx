@@ -25,7 +25,9 @@ const NAV_LINKS: NavItem[] = [
 export default function Navbar(): ReactNode {
   const { colorMode, setColorMode } = useColorMode();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { i18n: { currentLocale, locales } } = useDocusaurusContext();
+  const {
+    i18n: { currentLocale, locales },
+  } = useDocusaurusContext();
   const { createUrl } = useAlternatePageUtils();
 
   const otherLocale = locales.find((l) => l !== currentLocale);
@@ -37,13 +39,11 @@ export default function Navbar(): ReactNode {
     colorMode === 'dark' ? '/img/prokodo-logo-icon.webp' : '/img/prokodo-logo-icon.webp',
   );
 
-  const toggleTheme = () =>
-    setColorMode(colorMode === 'dark' ? 'light' : 'dark');
+  const toggleTheme = () => setColorMode(colorMode === 'dark' ? 'light' : 'dark');
 
   return (
     <nav className={clsx('navbar', styles.navbar)}>
       <div className={styles.inner}>
-
         {/* Left: brand + nav links */}
         <div className={styles.leftGroup}>
           <DocLink to="/" className={styles.brand}>
@@ -54,11 +54,7 @@ export default function Navbar(): ReactNode {
           <ul className={styles.navLinks}>
             {NAV_LINKS.map((item) => (
               <li key={item.label}>
-                <DocLink
-                  to={item.to}
-                  href={item.href}
-                  className={styles.navLink}
-                >
+                <DocLink to={item.to} href={item.href} className={styles.navLink}>
                   {item.label}
                 </DocLink>
               </li>

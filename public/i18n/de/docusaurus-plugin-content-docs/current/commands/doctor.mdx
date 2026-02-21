@@ -3,7 +3,8 @@ id: doctor
 title: doctor
 sidebar_position: 6
 description: Lokales prokodo-Setup mit prokodo doctor diagnostizieren — prüft Node-Version, Zugangsdaten, Konfiguration und Konnektivität.
-keywords: [prokodo doctor, prokodo Diagnose, prokodo Umgebungscheck, prokodo doctor Befehl, prokodo Debug]
+keywords:
+  [prokodo doctor, prokodo Diagnose, prokodo Umgebungscheck, prokodo doctor Befehl, prokodo Debug]
 ---
 
 # doctor
@@ -18,19 +19,19 @@ prokodo doctor [Optionen]
 
 ## Optionen
 
-| Flag | Typ | Standard | Beschreibung |
-|---|---|---|---|
-| `--json` | Boolean | `false` | Maschinenlesbare Ausgabe aktivieren |
+| Flag     | Typ     | Standard | Beschreibung                        |
+| -------- | ------- | -------- | ----------------------------------- |
+| `--json` | Boolean | `false`  | Maschinenlesbare Ausgabe aktivieren |
 
 ## Durchgeführte Prüfungen
 
-| Prüfung | Was wird geprüft |
-|---|---|
-| **Node-Version** | Ob Node.js ≥ 22 läuft |
-| **API-Schlüssel konfiguriert** | Schlüssel vorhanden (Datei oder Umgebungsvariable) |
-| **Schlüssel gültig** | prokodo-API antwortet erfolgreich |
-| **Konfigurationsdatei** | `.prokodo/config.json` im aktuellen Verzeichnis vorhanden |
-| **API-Erreichbarkeit** | Netzwerkverbindung zu `api.prokodo.com` möglich |
+| Prüfung                        | Was wird geprüft                                          |
+| ------------------------------ | --------------------------------------------------------- |
+| **Node-Version**               | Ob Node.js ≥ 22 läuft                                     |
+| **API-Schlüssel konfiguriert** | Schlüssel vorhanden (Datei oder Umgebungsvariable)        |
+| **Schlüssel gültig**           | prokodo-API antwortet erfolgreich                         |
+| **Konfigurationsdatei**        | `.prokodo/config.json` im aktuellen Verzeichnis vorhanden |
+| **API-Erreichbarkeit**         | Netzwerkverbindung zu `api.prokodo.com` möglich           |
 
 ## Ausgabe (Standard)
 
@@ -52,7 +53,11 @@ prokodo doctor --json
 {
   "checks": [
     { "name": "Node-Version", "status": "pass", "detail": "22.1.0 (erforderlich ≥ 22)" },
-    { "name": "API-Schlüssel konfiguriert", "status": "pass", "detail": "Quelle: credentials.json" },
+    {
+      "name": "API-Schlüssel konfiguriert",
+      "status": "pass",
+      "detail": "Quelle: credentials.json"
+    },
     { "name": "Schlüssel gültig", "status": "pass", "detail": "OK" },
     { "name": "Konfigurationsdatei", "status": "pass", "detail": ".prokodo/config.json vorhanden" },
     { "name": "API-Erreichbarkeit", "status": "pass", "detail": "api.prokodo.com → 200 OK" }
@@ -76,7 +81,7 @@ prokodo doctor --json | jq '.checks[] | select(.status == "fail")'
 
 ## Exit-Codes
 
-| Code | Bedeutung |
-|---|---|
-| `0` | Alle Prüfungen bestanden |
-| `1` | Mindestens eine Prüfung fehlgeschlagen |
+| Code | Bedeutung                              |
+| ---- | -------------------------------------- |
+| `0`  | Alle Prüfungen bestanden               |
+| `1`  | Mindestens eine Prüfung fehlgeschlagen |

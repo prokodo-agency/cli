@@ -3,12 +3,20 @@ id: global-options
 title: Global Options
 sidebar_position: 7
 description: Global CLI flags available on every prokodo command — API key, timeout, JSON mode, verbose output, and color control.
-keywords: [prokodo global options, prokodo CLI flags, prokodo --json, prokodo --verbose, prokodo --timeout, prokodo CLI options]
+keywords:
+  [
+    prokodo global options,
+    prokodo CLI flags,
+    prokodo --json,
+    prokodo --verbose,
+    prokodo --timeout,
+    prokodo CLI options,
+  ]
 ---
 
 # Global Options
 
-Every prokodo CLI command accepts these options in addition to its own flags.  Pass them **before or after** the command name.
+Every prokodo CLI command accepts these options in addition to its own flags. Pass them **before or after** the command name.
 
 ```bash
 prokodo [global options] <command> [command options]
@@ -17,15 +25,15 @@ prokodo <command> [global options]   # ← also works
 
 ## Options reference
 
-| Flag | Type | Description |
-|---|---|---|
-| `--api-url <url>` | string | Marketplace API base URL |
-| `--api-key <key>` | string | Override the resolved API key |
-| `--json` | boolean | Machine-readable JSON on `stdout`; human logs to `stderr` |
-| `--no-color` | boolean | Disable ANSI colour in all output |
-| `--verbose` | boolean | Debug-level detail on `stderr` |
-| `-v` / `--version` | — | Print the CLI version and exit |
-| `-h` / `--help` | — | Show contextual help |
+| Flag               | Type    | Description                                               |
+| ------------------ | ------- | --------------------------------------------------------- |
+| `--api-url <url>`  | string  | Marketplace API base URL                                  |
+| `--api-key <key>`  | string  | Override the resolved API key                             |
+| `--json`           | boolean | Machine-readable JSON on `stdout`; human logs to `stderr` |
+| `--no-color`       | boolean | Disable ANSI colour in all output                         |
+| `--verbose`        | boolean | Debug-level detail on `stderr`                            |
+| `-v` / `--version` | —       | Print the CLI version and exit                            |
+| `-h` / `--help`    | —       | Show contextual help                                      |
 
 ## API key resolution order
 
@@ -39,17 +47,17 @@ When multiple sources provide an API key, the **highest-priority source wins**:
 
 ## Environment variables
 
-| Variable | Equivalent flag | Description |
-|---|---|---|
-| `PROKODO_API_KEY` | `--api-key` | API key |
-| `PROKODO_API_BASE_URL` | `--api-url` | Custom API base URL |
-| `NO_COLOR` | `--no-color` | Disable colour (POSIX standard) |
+| Variable               | Equivalent flag | Description                     |
+| ---------------------- | --------------- | ------------------------------- |
+| `PROKODO_API_KEY`      | `--api-key`     | API key                         |
+| `PROKODO_API_BASE_URL` | `--api-url`     | Custom API base URL             |
+| `NO_COLOR`             | `--no-color`    | Disable colour (POSIX standard) |
 
 `NO_COLOR` follows the [no-color.org](https://no-color.org) convention — any non-empty value suppresses colour.
 
 ## `--json` mode
 
-All commands emit a structured JSON object to `stdout`.  Human-readable progress and debug lines go to `stderr` so they don't corrupt the JSON stream:
+All commands emit a structured JSON object to `stdout`. Human-readable progress and debug lines go to `stderr` so they don't corrupt the JSON stream:
 
 ```bash
 prokodo verify --json          # JSON on stdout, logs on stderr
@@ -60,6 +68,7 @@ prokodo doctor --json | jq '[.checks[] | select(.passed == false)]'
 ## `--verbose`
 
 Enables debug-level output (to `stderr`):
+
 - HTTP request / response details
 - Resolved config values
 - File glob matches and counts
@@ -77,7 +86,7 @@ Recommended in CI environments that don't interpret ANSI codes:
 
 ```yaml
 env:
-  NO_COLOR: "1"
+  NO_COLOR: '1'
 ```
 
 Or inline:

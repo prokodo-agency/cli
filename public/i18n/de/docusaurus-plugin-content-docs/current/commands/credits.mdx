@@ -3,7 +3,8 @@ id: credits
 title: credits
 sidebar_position: 5
 description: Aktuelles prokodo-Guthaben und Nutzungshistorie mit prokodo credits abrufen.
-keywords: [prokodo credits, prokodo Guthaben, prokodo Nutzung, prokodo credits Befehl, prokodo Konto]
+keywords:
+  [prokodo credits, prokodo Guthaben, prokodo Nutzung, prokodo credits Befehl, prokodo Konto]
 ---
 
 # credits
@@ -18,9 +19,9 @@ prokodo credits [Optionen]
 
 ## Optionen
 
-| Flag | Typ | Standard | Beschreibung |
-|---|---|---|---|
-| `--json` | Boolean | `false` | Maschinenlesbare Ausgabe aktivieren |
+| Flag     | Typ     | Standard | Beschreibung                        |
+| -------- | ------- | -------- | ----------------------------------- |
+| `--json` | Boolean | `false`  | Maschinenlesbare Ausgabe aktivieren |
 
 ## Anforderungen
 
@@ -52,13 +53,13 @@ prokodo credits --json
 }
 ```
 
-| Feld | Typ | Beschreibung |
-|---|---|---|
-| `credits.remaining` | `number` | Verfügbares Guthaben |
-| `credits.used` | `number` | In diesem Abrechnungszeitraum genutztes Guthaben |
-| `credits.total` | `number` | Gesamtguthaben laut Abo |
-| `plan` | `string` | Aktueller Abonnement-Plan |
-| `accountId` | `string` | Interner prokodo-Konto-Identifikator |
+| Feld                | Typ      | Beschreibung                                     |
+| ------------------- | -------- | ------------------------------------------------ |
+| `credits.remaining` | `number` | Verfügbares Guthaben                             |
+| `credits.used`      | `number` | In diesem Abrechnungszeitraum genutztes Guthaben |
+| `credits.total`     | `number` | Gesamtguthaben laut Abo                          |
+| `plan`              | `string` | Aktueller Abonnement-Plan                        |
+| `accountId`         | `string` | Interner prokodo-Konto-Identifikator             |
 
 ## Beispiele
 

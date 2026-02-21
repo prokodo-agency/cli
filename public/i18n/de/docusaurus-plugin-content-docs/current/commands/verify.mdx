@@ -3,7 +3,14 @@ id: verify
 title: verify
 sidebar_position: 4
 description: Projektdateien hochladen und Cloud-Verifizierungslauf mit prokodo verify starten — Flags, Exit-Codes und JSON-Ausgabe.
-keywords: [prokodo verify, prokodo Cloud-Verifizierung, prokodo verify Befehl, prokodo Datei-Upload, prokodo verify Flags]
+keywords:
+  [
+    prokodo verify,
+    prokodo Cloud-Verifizierung,
+    prokodo verify Befehl,
+    prokodo Datei-Upload,
+    prokodo verify Flags,
+  ]
 ---
 
 # verify
@@ -23,14 +30,14 @@ prokodo verify [Optionen]
 
 ## Optionen
 
-| Flag | Typ | Standard | Beschreibung |
-|---|---|---|---|
-| `--project-slug <slug>` | String | Aus config | Projekt-Slug überschreiben |
-| `--globs <muster>` | String[] | Aus config | Glob-Muster überschreiben |
-| `--timeout <sek>` | Number | `300` | Zeitüberschreitung überschreiben |
-| `--cwd <verz>` | String | `process.cwd()` | Arbeitsverzeichnis (für Konfiguration und Dateiauflösung) |
-| `--json` | Boolean | `false` | Maschinenlesbare Ausgabe aktivieren |
-| `--verbose` | Boolean | `false` | Hochgeladene Dateipfade und API-Antworten anzeigen |
+| Flag                    | Typ      | Standard        | Beschreibung                                              |
+| ----------------------- | -------- | --------------- | --------------------------------------------------------- |
+| `--project-slug <slug>` | String   | Aus config      | Projekt-Slug überschreiben                                |
+| `--globs <muster>`      | String[] | Aus config      | Glob-Muster überschreiben                                 |
+| `--timeout <sek>`       | Number   | `300`           | Zeitüberschreitung überschreiben                          |
+| `--cwd <verz>`          | String   | `process.cwd()` | Arbeitsverzeichnis (für Konfiguration und Dateiauflösung) |
+| `--json`                | Boolean  | `false`         | Maschinenlesbare Ausgabe aktivieren                       |
+| `--verbose`             | Boolean  | `false`         | Hochgeladene Dateipfade und API-Antworten anzeigen        |
 
 ## Ablauf
 
@@ -61,11 +68,11 @@ prokodo verify [Optionen]
 
 ## Exit-Codes
 
-| Code | Bedeutung |
-|---|---|
-| `0` | Verifizierung bestanden |
-| `1` | Verifizierung fehlgeschlagen oder API-Fehler |
-| `2` | Falsche Nutzung (fehlende Pflichtfelder, Konfigurationsfehler) |
+| Code | Bedeutung                                                      |
+| ---- | -------------------------------------------------------------- |
+| `0`  | Verifizierung bestanden                                        |
+| `1`  | Verifizierung fehlgeschlagen oder API-Fehler                   |
+| `2`  | Falsche Nutzung (fehlende Pflichtfelder, Konfigurationsfehler) |
 
 ## Konfiguration für verifyGlobs
 
@@ -73,12 +80,7 @@ Mit `verifyGlobs` wird gesteuert, welche Dateien hochgeladen werden. Beispiele:
 
 ```json
 {
-  "verifyGlobs": [
-    "src/**/*",
-    "package.json",
-    "!**/*.test.*",
-    "!node_modules/**"
-  ]
+  "verifyGlobs": ["src/**/*", "package.json", "!**/*.test.*", "!node_modules/**"]
 }
 ```
 
