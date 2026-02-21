@@ -6,3 +6,7 @@ coverage/
 *.log
 .DS_Store
 Thumbs.db
+
+# Docusaurus — built by CI, never commit
+public/build/
+public/.docusaurus/
