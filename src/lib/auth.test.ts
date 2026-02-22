@@ -19,10 +19,10 @@ const mockIsInteractive = isInteractive as jest.MockedFunction<typeof isInteract
 
 describe('maskKey', () => {
   it('masks all but last 4 characters', () => {
-    const masked = maskKey('pk_live_abcde12345');
+    const masked = maskKey('pk_abcde12345');
     expect(masked.endsWith('2345')).toBe(true);
     expect(masked.startsWith('••')).toBe(true);
-    expect(masked).not.toContain('pk_live_abcde');
+    expect(masked).not.toContain('pk_abcde');
   });
 
   it('handles short keys (≤4 chars)', () => {
@@ -42,10 +42,10 @@ describe('maskKey', () => {
   });
 
   it('key longer than 4 chars has last-4 preserved and rest masked', () => {
-    const key = 'pk_live_12345678';
+    const key = 'pk_12345678';
     const masked = maskKey(key);
     expect(masked.endsWith('5678')).toBe(true);
-    expect(masked).not.toContain('pk_live_');
+    expect(masked).not.toContain('pk_');
   });
 });
 
@@ -53,7 +53,7 @@ describe('maskKey', () => {
 
 describe('isValidKeyShape', () => {
   it('accepts a normal key', () => {
-    expect(isValidKeyShape('pk_live_abcdefgh')).toBe(true);
+    expect(isValidKeyShape('pk_abcdefgh')).toBe(true);
   });
 
   it('rejects placeholder with angle brackets', () => {
@@ -79,7 +79,7 @@ describe('isValidKeyShape', () => {
   });
 
   it('accepts long key', () => {
-    expect(isValidKeyShape('pk_live_abcdefghij1234567890')).toBe(true);
+    expect(isValidKeyShape('pk_abcdefghij1234567890')).toBe(true);
   });
 });
 

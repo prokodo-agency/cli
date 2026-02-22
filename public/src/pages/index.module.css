@@ -62,7 +62,10 @@
 }
 
 .heroInstall {
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(30, 144, 255, 0.3);
   border-radius: 8px;
@@ -78,6 +81,16 @@
   color: var(--color-secondary-500);
   font-size: inherit;
   padding: 0;
+}
+
+.heroInstallAlts {
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+.heroInstallAlts a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 /* ─── Quick-start strip ───────────────────────────────────────────────────── */

@@ -6,6 +6,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import { useColorMode } from '@docusaurus/theme-common';
 import { useAlternatePageUtils } from '@docusaurus/theme-common/internal';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import Translate, { translate } from '@docusaurus/Translate';
 import { Icon } from '@prokodo/ui/icon';
 
 import styles from './index.module.css';
@@ -14,11 +15,6 @@ import { MARKETPLACE_URL, GITHUB_CLI_URL } from '../../constants';
 // ─── Nav structure ────────────────────────────────────────────────────────────
 
 type NavItem = { label: string } & ({ to: string; href?: never } | { href: string; to?: never });
-
-const NAV_LINKS: NavItem[] = [
-  { label: 'Docs', to: '/docs/' },
-  { label: 'Marketplace', href: MARKETPLACE_URL },
-];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -39,7 +35,21 @@ export default function Navbar(): ReactNode {
     colorMode === 'dark' ? '/img/prokodo-logo-icon.webp' : '/img/prokodo-logo-icon.webp',
   );
 
-  const toggleTheme = () => setColorMode(colorMode === 'dark' ? 'light' : 'dark');
+  const isDark = colorMode === 'dark';
+  const nextColorMode = isDark ? 'light' : 'dark';
+
+  const navLinks: NavItem[] = [
+    {
+      label: translate({ id: 'prokodo.navbar.link.docs', message: 'Docs' }),
+      to: '/docs/',
+    },
+    {
+      label: translate({ id: 'prokodo.navbar.link.marketplace', message: 'Marketplace' }),
+      href: MARKETPLACE_URL,
+    },
+  ];
+
+  const toggleTheme = () => setColorMode(isDark ? 'light' : 'dark');
 
   return (
     <nav className={clsx('navbar', styles.navbar)}>
@@ -52,7 +62,7 @@ export default function Navbar(): ReactNode {
           </DocLink>
 
           <ul className={styles.navLinks}>
-            {NAV_LINKS.map((item) => (
+            {navLinks.map((item) => (
               <li key={item.label}>
                 <DocLink to={item.to} href={item.href} className={styles.navLink}>
                   {item.label}
@@ -68,7 +78,13 @@ export default function Navbar(): ReactNode {
             <a
               href={otherLocaleUrl}
               className={styles.localeToggle}
-              aria-label={`Switch language to ${otherLocale}`}
+              aria-label={translate(
+                {
+                  id: 'prokodo.navbar.localeSwitch.ariaLabel',
+                  message: 'Switch language to {locale}',
+                },
+                { locale: otherLocale },
+              )}
             >
               {otherLocale.toUpperCase()}
             </a>
@@ -78,9 +94,15 @@ export default function Navbar(): ReactNode {
             type="button"
             className={styles.themeToggle}
             onClick={toggleTheme}
-            aria-label={`Switch to ${colorMode === 'dark' ? 'light' : 'dark'} mode`}
+            aria-label={translate(
+              {
+                id: 'prokodo.navbar.themeToggle.ariaLabel',
+                message: 'Switch to {mode} mode',
+              },
+              { mode: nextColorMode },
+            )}
           >
-            <Icon name={colorMode === 'dark' ? 'Sun01Icon' : 'Moon02Icon'} size="sm" />
+            <Icon name={isDark ? 'Sun01Icon' : 'Moon02Icon'} size="sm" />
           </button>
 
           <a
@@ -88,7 +110,7 @@ export default function Navbar(): ReactNode {
             target="_blank"
             rel="noopener noreferrer"
             className={styles.themeToggle}
-            aria-label="GitHub"
+            aria-label={translate({ id: 'prokodo.navbar.github.ariaLabel', message: 'GitHub' })}
           >
             <Icon name="GithubIcon" size="sm" />
           </a>
@@ -99,7 +121,10 @@ export default function Navbar(): ReactNode {
           type="button"
           className={styles.hamburger}
           onClick={() => setMobileOpen((o) => !o)}
-          aria-label="Toggle navigation menu"
+          aria-label={translate({
+            id: 'prokodo.navbar.hamburger.ariaLabel',
+            message: 'Toggle navigation menu',
+          })}
           aria-expanded={mobileOpen}
         >
           <Icon name={mobileOpen ? 'Cancel01Icon' : 'Menu01Icon'} size="md" />
@@ -109,7 +134,7 @@ export default function Navbar(): ReactNode {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className={styles.mobileMenu}>
-          {NAV_LINKS.map((item) => (
+          {navLinks.map((item) => (
             <DocLink
               key={item.label}
               to={item.to}
@@ -126,7 +151,8 @@ export default function Navbar(): ReactNode {
             onClick={() => setMobileOpen(false)}
           >
             <Icon name="GithubIcon" size="xs" />
-            {' GitHub'}
+            {' '}
+            <Translate id="prokodo.navbar.mobile.github">GitHub</Translate>
           </DocLink>
           {otherLocale && otherLocaleUrl && (
             <a
@@ -134,7 +160,9 @@ export default function Navbar(): ReactNode {
               className={styles.mobileLink}
               onClick={() => setMobileOpen(false)}
             >
-              {otherLocale === 'de' ? '🇩🇪 Deutsch' : '🇬🇧 English'}
+              {otherLocale === 'de'
+                ? translate({ id: 'prokodo.navbar.mobile.locale.de', message: '🇩🇪 Deutsch' })
+                : translate({ id: 'prokodo.navbar.mobile.locale.en', message: '🇬🇧 English' })}
             </a>
           )}
         </div>

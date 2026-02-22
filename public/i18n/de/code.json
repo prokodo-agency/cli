@@ -325,5 +325,207 @@
   "theme.tags.tagsPageTitle": {
     "message": "Tags",
     "description": "The title of the tag list page"
+  },
+
+  "prokodo.navbar.link.docs": {
+    "message": "Dokumentation",
+    "description": "Navbar link label for Docs"
+  },
+  "prokodo.navbar.link.marketplace": {
+    "message": "Marktplatz",
+    "description": "Navbar link label for Marketplace"
+  },
+  "prokodo.navbar.localeSwitch.ariaLabel": {
+    "message": "Sprache wechseln zu {locale}",
+    "description": "ARIA label for the locale switcher button in the navbar"
+  },
+  "prokodo.navbar.themeToggle.ariaLabel": {
+    "message": "Zum {mode}-Modus wechseln",
+    "description": "ARIA label for the theme toggle button in the navbar"
+  },
+  "prokodo.navbar.github.ariaLabel": {
+    "message": "GitHub",
+    "description": "ARIA label for the GitHub icon link in the navbar"
+  },
+  "prokodo.navbar.hamburger.ariaLabel": {
+    "message": "Navigationsmenü umschalten",
+    "description": "ARIA label for the mobile hamburger menu button"
+  },
+  "prokodo.navbar.mobile.github": {
+    "message": "GitHub",
+    "description": "GitHub link label in the mobile drawer"
+  },
+  "prokodo.navbar.mobile.locale.de": {
+    "message": "🇩🇪 Deutsch",
+    "description": "German locale label in the mobile drawer"
+  },
+  "prokodo.navbar.mobile.locale.en": {
+    "message": "🇬🇧 English",
+    "description": "English locale label in the mobile drawer"
+  },
+
+  "prokodo.footer.section.docs": {
+    "message": "Dokumentation",
+    "description": "Footer section title for Docs"
+  },
+  "prokodo.footer.section.commands": {
+    "message": "Befehle",
+    "description": "Footer section title for Commands"
+  },
+  "prokodo.footer.section.prokodo": {
+    "message": "prokodo",
+    "description": "Footer section title for prokodo"
+  },
+  "prokodo.footer.link.gettingStarted": {
+    "message": "Erste Schritte",
+    "description": "Footer link label for Getting Started"
+  },
+  "prokodo.footer.link.commands": {
+    "message": "Befehle",
+    "description": "Footer link label for Commands"
+  },
+  "prokodo.footer.link.configuration": {
+    "message": "Konfiguration",
+    "description": "Footer link label for Configuration"
+  },
+  "prokodo.footer.link.cicd": {
+    "message": "CI / CD",
+    "description": "Footer link label for CI/CD"
+  },
+  "prokodo.footer.link.troubleshooting": {
+    "message": "Fehlerbehebung",
+    "description": "Footer link label for Troubleshooting"
+  },
+  "prokodo.footer.link.marketplace": {
+    "message": "Marktplatz",
+    "description": "Footer link label for Marketplace"
+  },
+  "prokodo.footer.link.website": {
+    "message": "Website",
+    "description": "Footer link label for Website"
+  },
+  "prokodo.footer.link.github": {
+    "message": "GitHub",
+    "description": "Footer link label for GitHub"
+  },
+  "prokodo.footer.tagline": {
+    "message": "prokodo-Projekte prüfen, inspizieren und verwalten – direkt im Terminal.",
+    "description": "Footer brand tagline"
+  },
+  "prokodo.footer.social.github": {
+    "message": "GitHub",
+    "description": "ARIA label for the GitHub social link in the footer"
+  },
+  "prokodo.footer.social.linkedin": {
+    "message": "LinkedIn",
+    "description": "ARIA label for the LinkedIn social link in the footer"
+  },
+  "prokodo.footer.copyright": {
+    "message": "Copyright © {year} prokodo.",
+    "description": "Footer copyright notice"
+  },
+  "prokodo.footer.link.legal": {
+    "message": "Rechtliches",
+    "description": "Footer bottom link label for Legal"
+  },
+  "prokodo.footer.link.imprint": {
+    "message": "Impressum",
+    "description": "Footer bottom link label for Imprint"
+  },
+
+  "prokodo.homepage.layout.title": {
+    "message": "prokodo CLI — Entwicklerdokumentation",
+    "description": "HTML page title for the homepage"
+  },
+  "prokodo.homepage.layout.description": {
+    "message": "Offizielle Dokumentation für die prokodo CLI. prokodo-Projekte vom Terminal aus verifizieren, inspizieren und verwalten.",
+    "description": "Meta description for the homepage"
+  },
+  "prokodo.homepage.hero.getStarted": {
+    "message": "Loslegen →",
+    "description": "Hero CTA button label for Get Started"
+  },
+  "prokodo.homepage.hero.commandReference": {
+    "message": "Befehlsreferenz",
+    "description": "Hero CTA button label for Command Reference"
+  },
+  "prokodo.homepage.quickstart.heading": {
+    "message": "In 60 Sekunden einsatzbereit",
+    "description": "Heading for the quick-start section on the homepage"
+  },
+  "prokodo.homepage.quickstart.step.install": {
+    "message": "Installieren",
+    "description": "Step label: Install"
+  },
+  "prokodo.homepage.quickstart.step.authenticate": {
+    "message": "Authentifizieren",
+    "description": "Step label: Authenticate"
+  },
+  "prokodo.homepage.quickstart.step.configure": {
+    "message": "Konfigurieren",
+    "description": "Step label: Configure"
+  },
+  "prokodo.homepage.quickstart.step.verify": {
+    "message": "Verifizieren",
+    "description": "Step label: Verify"
+  },
+  "prokodo.homepage.features.heading": {
+    "message": "Alles was du brauchst",
+    "description": "Heading for the features section on the homepage"
+  },
+  "prokodo.homepage.feature.auth.title": {
+    "message": "auth",
+    "description": "Feature card title for auth command"
+  },
+  "prokodo.homepage.feature.auth.description": {
+    "message": "API-Schlüssel sicher speichern, rotieren und prüfen. Zugangsdaten werden unter ~/.config/prokodo mit 0600-Berechtigungen gespeichert.",
+    "description": "Feature card description for auth command"
+  },
+  "prokodo.homepage.feature.init.title": {
+    "message": "init",
+    "description": "Feature card title for init command"
+  },
+  "prokodo.homepage.feature.init.description": {
+    "message": ".prokodo/config.json in Sekunden erstellen. Projekt-Slug, Glob-Muster und Timeout festlegen – alles, was verify benötigt.",
+    "description": "Feature card description for init command"
+  },
+  "prokodo.homepage.feature.verify.title": {
+    "message": "verify",
+    "description": "Feature card title for verify command"
+  },
+  "prokodo.homepage.feature.verify.description": {
+    "message": "Projektdateien hochladen und eine Cloud-Verifizierung starten. Logs in Echtzeit streamen und ein strukturiertes Ergebnis erhalten.",
+    "description": "Feature card description for verify command"
+  },
+  "prokodo.homepage.feature.credits.title": {
+    "message": "credits",
+    "description": "Feature card title for credits command"
+  },
+  "prokodo.homepage.feature.credits.description": {
+    "message": "Guthaben jederzeit abrufen. Mit --json für Scripting oder Dashboard-Integrationen kombinieren.",
+    "description": "Feature card description for credits command"
+  },
+  "prokodo.homepage.feature.doctor.title": {
+    "message": "doctor",
+    "description": "Feature card title for doctor command"
+  },
+  "prokodo.homepage.feature.doctor.description": {
+    "message": "Umgebung mit einem Befehl diagnostizieren. Prüft Node-Version, Zugangsdaten, Konfigurationsdatei und API-Erreichbarkeit.",
+    "description": "Feature card description for doctor command"
+  },
+  "prokodo.homepage.feature.ci.title": {
+    "message": "CI-First-Design",
+    "description": "Feature card title for CI-first design"
+  },
+  "prokodo.homepage.feature.ci.description": {
+    "message": "Jeder Befehl unterstützt --json-Ausgabe, Umgebungsvariablen-Authentifizierung (PROKODO_API_KEY) und beendet sich mit vorhersehbaren Exit-Codes.",
+    "description": "Feature card description for CI-first design"  },
+  "prokodo.homepage.hero.alsoAvailable": {
+    "message": "Auch verfügbar via",
+    "description": "Label in the hero install snippet pointing to Homebrew & Docker alternatives"
+  },
+  "prokodo.homepage.hero.tagline": {
+    "message": "prokodo-Projekte vom Terminal aus verifizieren, inspizieren und verwalten.",
+    "description": "Hero subtitle / tagline on the homepage"
   }
 }

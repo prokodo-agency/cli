@@ -41,7 +41,7 @@ async function main(): Promise<void> {
       'after',
       `
 Quick start:
-  $ prokodo auth login --key pk_live_...   Store your API key
+  $ prokodo auth login --key pk_...   Store your API key
   $ prokodo init --slug my-project         Create .prokodo/config.json
   $ prokodo verify                         Run a cloud verification
   $ prokodo doctor --json                  Health-check in JSON mode

@@ -21,7 +21,7 @@ npm install -g @prokodo/cli
 
 1. Log in to the [prokodo marketplace](https://www.n8n-marketplace.prokodo.com)
 2. Go to **Account → API Keys**
-3. Click **Create new key** and copy the value — it starts with `pk_live_`
+3. Click **Create new key** and copy the value — it starts with `pk_`
 
 :::warning
 API keys are shown only once. Store your key securely (e.g. in a password manager or a CI secret).
@@ -30,7 +30,7 @@ API keys are shown only once. Store your key securely (e.g. in a password manage
 ## Step 3 — Authenticate
 
 ```bash
-prokodo auth login --key pk_live_yourkeyhere
+prokodo auth login --key pk_yourkeyhere
 ```
 
 The CLI validates the key against the prokodo API and stores it at `~/.config/prokodo/credentials.json` with `0600` permissions.

@@ -74,7 +74,7 @@ export function registerVerifyCommand(program: Command): void {
 
       let run: StartRunResponse;
       try {
-        run = await client.post<StartRunResponse>('/api/cli/v1/verify/run', body);
+        run = await client.post<StartRunResponse>('/api/cli/v1/verify/runs', body);
       } catch (err_) {
         return handleApiError(err_, jsonMode);
       }
@@ -95,13 +95,16 @@ export function registerVerifyCommand(program: Command): void {
           initialIntervalMs: 1_000,
           maxIntervalMs: 10_000,
           isDone: /* istanbul ignore next */ (s) =>
-            s.status === 'success' || s.status === 'failed' || s.status === 'timeout',
+            s.status === 'success' ||
+            s.status === 'failed' ||
+            s.status === 'timeout' ||
+            s.status === 'rejected',
           fn: async () => {
             // Stream any new log lines
             if (opts.logs) {
               logCursor = await streamLogs(client, runId, logCursor, jsonMode);
             }
-            return client.get<RunStatusResponse>(`/api/cli/v1/verify/run/${runId}`);
+            return client.get<RunStatusResponse>(`/api/cli/v1/verify/runs/${runId}`);
           },
         });
       } catch (err_) {
@@ -116,15 +119,34 @@ export function registerVerifyCommand(program: Command): void {
         return handleApiError(err_, jsonMode);
       }
 
-      // ── 6. Fetch final result ─────────────────────────────────────────────
+      // ── 6. Handle rejected runs before fetching result ────────────────────
+      if (finalStatus.status === 'rejected') {
+        const reason = finalStatus.reasonCode ?? 'RUNNER_ERROR';
+        if (jsonMode) {
+          emitJson({ error: 'run_rejected', runId, reasonCode: reason });
+        } else {
+          const messages: Record<string, string> = {
+            INSUFFICIENT_CREDITS: 'Insufficient credits. Purchase credits at marketplace.prokodo.com.',
+            NOT_IMPLEMENTED: 'Verify pipeline is not yet available. Check back soon.',
+            CONCURRENCY_CAP_REACHED: 'Worker at capacity. Retry shortly.',
+            INVALID_PAYLOAD: 'Run rejected: invalid payload.',
+            RUNNER_ERROR: 'Run rejected due to an internal error.',
+            TIMEOUT: 'Run timed out.',
+          };
+          error(messages[reason] ?? `Run rejected: ${reason}`);
+        }
+        process.exit(1);
+      }
+
+      // ── 7. Fetch final result ─────────────────────────────────────────────
       let result: RunResultResponse;
       try {
-        result = await client.get<RunResultResponse>(`/api/cli/v1/verify/run/${runId}/result`);
+        result = await client.get<RunResultResponse>(`/api/cli/v1/verify/runs/${runId}/result`);
       } catch (err_) {
         return handleApiError(err_, jsonMode);
       }
 
-      // ── 7. Output ─────────────────────────────────────────────────────
+      // ── 8. Output ─────────────────────────────────────────────────────
       if (jsonMode) {
         emitJson({ ...result, status: finalStatus.status });
       } else {
@@ -146,7 +168,7 @@ async function streamLogs(
 ): Promise<string> {
   try {
     const qs = cursor ? /* istanbul ignore next */ `?cursor=${encodeURIComponent(cursor)}` : '';
-    const logs = await client.get<LogsResponse>(`/api/cli/v1/verify/run/${runId}/logs${qs}`);
+    const logs = await client.get<LogsResponse>(`/api/cli/v1/verify/runs/${runId}/logs${qs}`);
     for (const line of logs.lines) {
       if (!jsonMode) {
         logLine(line.level, line.ts, line.msg);
@@ -255,6 +277,8 @@ function handleApiError(err: unknown, jsonMode: boolean): never {
         error('Insufficient credits. Purchase credits at marketplace.prokodo.com.');
       } else if (err.statusCode === 409) {
         error('A verification is already in progress for this project.');
+      } else if (err.statusCode === 503) {
+        error(`Service unavailable: ${err.message}. Retry shortly.`);
       } else {
         error(`API error ${err.statusCode}: ${err.message}`);
       }

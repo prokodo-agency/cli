@@ -39,7 +39,16 @@ export interface StartRunRequest {
   config?: Record<string, unknown>;
 }
 
-export type RunStatus = 'queued' | 'running' | 'success' | 'failed' | 'timeout';
+export type RunStatus = 'queued' | 'running' | 'success' | 'failed' | 'timeout' | 'rejected';
+
+/** reasonCode present when status === 'rejected' */
+export type RunRejectReason =
+  | 'INSUFFICIENT_CREDITS'
+  | 'INVALID_PAYLOAD'
+  | 'NOT_IMPLEMENTED'
+  | 'RUNNER_ERROR'
+  | 'TIMEOUT'
+  | 'CONCURRENCY_CAP_REACHED';
 
 export interface StartRunResponse {
   runId: string;
@@ -52,6 +61,7 @@ export interface StartRunResponse {
 export interface RunStatusResponse {
   runId: string;
   status: RunStatus;
+  reasonCode?: RunRejectReason;
   startedAt?: string;
   completedAt?: string;
   durationMs?: number;

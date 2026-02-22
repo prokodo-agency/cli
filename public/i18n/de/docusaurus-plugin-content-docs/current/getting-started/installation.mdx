@@ -2,12 +2,13 @@
 id: installation
 title: Installation
 sidebar_position: 1
-description: prokodo CLI global installieren via npm, pnpm oder yarn — Systemanforderungen, Paketverwalterbefehle und Überprüfungsschritte.
+description: prokodo CLI installieren via npm, Homebrew oder Docker — Systemanforderungen, Paketverwalterbefehle und Überprüfungsschritte.
 keywords:
   [
     prokodo CLI installieren,
     npm install prokodo,
-    pnpm install prokodo CLI,
+    homebrew prokodo CLI,
+    docker prokodo CLI,
     prokodo CLI Setup,
     prokodo CLI Anforderungen,
   ]
@@ -15,7 +16,11 @@ keywords:
 
 # Installation
 
-## Voraussetzungen
+Die prokodo CLI ist über drei Installationsmethoden verfügbar. Wähle die, die am besten zu deinem Workflow passt.
+
+## npm / pnpm / yarn {#npm}
+
+### Voraussetzungen
 
 | Voraussetzung     | Version          |
 | ----------------- | ---------------- |
@@ -26,7 +31,7 @@ keywords:
 Nicht sicher, welche Version installiert ist? Führe `node --version` aus. Falls Node 22 benötigt wird, verwende [nvm](https://github.com/nvm-sh/nvm): `nvm install 22 && nvm use 22`.
 :::
 
-## Global installieren
+### Global installieren
 
 ```bash
 npm install -g @prokodo/cli
@@ -50,7 +55,7 @@ prokodo --version
 
 Die aktuelle Versionsnummer sollte auf stdout ausgegeben werden.
 
-## Ohne globale Installation (npx)
+### Ohne globale Installation (npx)
 
 Die CLI lässt sich auch ohne globale Installation ausführen:
 
@@ -58,9 +63,79 @@ Die CLI lässt sich auch ohne globale Installation ausführen:
 npx @prokodo/cli --help
 ```
 
+### Aktualisieren
+
+```bash
+npm update -g @prokodo/cli
+```
+
+### Deinstallieren
+
+```bash
+npm uninstall -g @prokodo/cli
+```
+
+---
+
+## Homebrew {#homebrew}
+
+**Voraussetzungen:** macOS 12 Monterey oder neuer · [Homebrew](https://brew.sh)
+
+Node.js wird automatisch als Homebrew-Abhängigkeit installiert — ein separates Node-Setup ist nicht erforderlich.
+
+```bash
+# 1. prokodo Tap hinzufügen (einmalig)
+brew tap prokodo-agency/tap
+
+# 2. CLI installieren
+brew install prokodo-cli
+
+# 3. Überprüfen
+prokodo --version
+prokodo doctor
+```
+
+### Aktualisieren
+
+```bash
+brew update && brew upgrade prokodo-cli
+```
+
+### Deinstallieren
+
+```bash
+brew uninstall prokodo-cli
+brew untap prokodo-agency/tap  # optional — entfernt den Tap vollständig
+```
+
+---
+
+## Docker {#docker}
+
+Keine lokale Installation erforderlich. Das offizielle Image aus der GitHub Container Registry verwenden.
+
+```bash
+# Beliebige Befehle ohne globale Installation ausführen
+docker run --rm ghcr.io/prokodo-agency/prokodo-cli:latest --help
+```
+
+```bash
+# Lokales Projekt verifizieren (Arbeitsverzeichnis einbinden)
+docker run --rm \
+  -e PROKODO_API_KEY=pk_live_... \
+  -v "$PWD":/workspace -w /workspace \
+  ghcr.io/prokodo-agency/prokodo-cli:latest verify
+```
+
+:::tip
+`PROKODO_API_KEY` als Umgebungsvariable übergeben, anstatt `prokodo auth login` innerhalb des Containers zu verwenden — per `prokodo auth login` gespeicherte Zugangsdaten werden im Host-Dateisystem abgelegt und stehen im Container standardmäßig nicht zur Verfügung.
+:::
+
+---
+
 ## Umgebung prüfen
 
-Nach der Installation den eingebauten Gesundheitscheck ausführen:
+Nach der Installation über eine der genannten Methoden den eingebauten Gesundheitscheck ausführen:
 
 ```bash
 prokodo doctor
@@ -76,15 +151,3 @@ Erwartete Ausgabe (grüne Häkchen für alle fünf Prüfungen):
 ```
 
 Die Prüfungen `API key configured` und `.prokodo/config.json` schlagen fehl, bis die [Authentifizierung](./quick-start) abgeschlossen ist — das ist erwartet.
-
-## Aktualisieren
-
-```bash
-npm update -g @prokodo/cli
-```
-
-## Deinstallieren
-
-```bash
-npm uninstall -g @prokodo/cli
-```

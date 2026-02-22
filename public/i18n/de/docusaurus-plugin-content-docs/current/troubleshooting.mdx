@@ -30,7 +30,7 @@ keywords:
 
 | Ursache                                     | Lösung                                         |
 | ------------------------------------------- | ---------------------------------------------- |
-| Noch nie `auth login` ausgeführt            | `prokodo auth login --key pk_live_…` ausführen |
+| Noch nie `auth login` ausgeführt            | `prokodo auth login --key pk_…` ausführen |
 | In CI, aber Secret nicht gesetzt            | `PROKODO_API_KEY` in der Pipeline setzen       |
 | Berechtigungen der Zugangsdatendatei falsch | `chmod 600 ~/.config/prokodo/credentials.json` |
 
@@ -60,17 +60,17 @@ keywords:
 **Fehlermeldung:**
 
 ```
-✗ Invalid API key: must start with pk_live_ or pk_test_.
+✗ Invalid API key: must start with pk_.
 ```
 
 **Lösung:** API-Schlüssel im prokodo-Dashboard überprüfen. Sicherstellen, dass kein Leerzeichen vorangestellt ist oder Anführungszeichen enthalten sind:
 
 ```bash
 # Korrekt
-prokodo auth login --key pk_live_abc123
+prokodo auth login --key pk_abc123
 
 # Falsch (mit Anführungszeichen als Teil des Werts)
-prokodo auth login --key "pk_live_abc123"  # Anführungszeichen werden von der Shell für Sie entfernt
+prokodo auth login --key "pk_abc123"  # Anführungszeichen werden von der Shell für Sie entfernt
 ```
 
 ---

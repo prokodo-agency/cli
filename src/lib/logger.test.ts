@@ -61,8 +61,8 @@ function resetLogger(): void {
 
 describe('logger.maskKey', () => {
   it('exposes last 4 and hides rest', () => {
-    expect(logger.maskKey('pk_live_abcdefghij').endsWith('ghij')).toBe(true);
-    expect(logger.maskKey('pk_live_abcdefghij')).not.toContain('abcde');
+    expect(logger.maskKey('pk_abcdefghij').endsWith('ghij')).toBe(true);
+    expect(logger.maskKey('pk_abcdefghij')).not.toContain('abcde');
   });
 
   it('short key returns all bullets', () => {

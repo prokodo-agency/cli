@@ -47,12 +47,12 @@ prokodo auth login --key <key>
 **Examples**
 
 ```bash
-prokodo auth login --key pk_live_abc123xyz789
+prokodo auth login --key pk_abc123xyz789
 ```
 
 ```bash
 # JSON mode — useful for scripted provisioning
-prokodo auth login --key pk_live_abc123xyz789 --json
+prokodo auth login --key pk_abc123xyz789 --json
 # → { "authenticated": true, "keyHint": "••••••••xyz789" }
 ```
 
@@ -124,7 +124,7 @@ prokodo auth whoami
 ```
 
 ```bash
-PROKODO_API_KEY=pk_live_test prokodo auth whoami --json
+PROKODO_API_KEY=pk_test prokodo auth whoami --json
 # → { "keyHint": "••••test" }
 ```
 
