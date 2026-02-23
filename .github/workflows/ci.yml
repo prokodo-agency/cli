@@ -21,7 +21,7 @@ on:
       - 'jest.integration.config.*'
       - 'Dockerfile'
       - '.dockerignore'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/**'
       - 'public/**'
   pull_request:
     branches: [main, dev]
@@ -41,7 +41,7 @@ on:
       - 'jest.integration.config.*'
       - 'Dockerfile'
       - '.dockerignore'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/**'
       - 'public/**'
   workflow_call: {} # callable from release.yml
 

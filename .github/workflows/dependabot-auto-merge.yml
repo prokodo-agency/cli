@@ -1,0 +1,63 @@
+name: Dependabot auto-merge
+
+# Automatically approve and merge Dependabot PRs that contain *only*
+# minor/patch version bumps after CI is green.
+#
+# Major-version bumps are intentionally excluded — they require human review.
+#
+# Required repository settings:
+#   - "Allow auto-merge" must be enabled (Repository → Settings → General)
+#   - The GITHUB_TOKEN must have "Contents: write" and "Pull requests: write"
+#     permissions (granted via the `permissions` block below)
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot-auto-merge:
+    name: Auto-merge minor / patch Dependabot PRs
+    runs-on: ubuntu-latest
+    # Only run for PRs opened by Dependabot
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      # ── 1. Fetch PR metadata from Dependabot ─────────────────────────────
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2.4.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 2. Auto-approve minor/patch bumps ────────────────────────────────
+      - name: Approve PR (minor / patch only)
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+          steps.meta.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 3. Enable auto-merge (squash) so it merges once CI passes ────────
+      - name: Enable auto-merge (minor / patch)
+        if: |
+          steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+          steps.meta.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 4. Add explanatory comment on major bumps (needs human review) ───
+      - name: Comment on major-version PRs
+        if: steps.meta.outputs.update-type == 'version-update:semver-major'
+        run: |
+          gh pr comment "$PR_URL" \
+            --body "⚠️ **Major version bump** — this PR requires manual review before merging."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
