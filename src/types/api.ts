@@ -1,6 +1,8 @@
 // API request / response shapes for /api/cli/v1
 // Kept in one file so both apiClient and commands share types without circular deps
 
+import type { ProjectType } from './project';
+
 // ─── Common ──────────────────────────────────────────────────────────────────
 
 export interface ApiError {
@@ -33,9 +35,32 @@ export interface VerifyFile {
 }
 
 export interface StartRunRequest {
-  projectSlug: string;
+  /** What kind of artefact is being verified. */
+  projectType: ProjectType;
+  /**
+   * npm package name (from package.json `name`).
+   * Present for npm-based project types (e.g. n8n-node) in local project mode.
+   */
+  packageName?: string;
+  /**
+   * Git remote origin URL — universal fallback identifier.
+   * Used when no packageName is available.
+   */
+  source?: string;
+  /**
+   * Published npm package reference, e.g. `@scope/name` or `@scope/name@1.2.3`.
+   * When set, the server fetches the package from the npm registry instead of
+   * using locally uploaded files. Mutually exclusive with `files`.
+   */
+  packageRef?: string;
+  /** Git ref, branch, or commit SHA to tag the run. */
   ref?: string;
-  files: VerifyFile[];
+  /**
+   * Files to verify (local project mode).
+   * Omitted when `packageRef` is set.
+   */
+  files?: VerifyFile[];
+  /** Arbitrary extra config forwarded to the runner. */
   config?: Record<string, unknown>;
 }
 

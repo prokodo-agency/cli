@@ -2,40 +2,48 @@
 id: credits
 title: credits
 sidebar_position: 5
-description: Aktuelles prokodo-Guthaben und Nutzungshistorie mit prokodo credits abrufen.
-keywords:
-  [prokodo credits, prokodo Guthaben, prokodo Nutzung, prokodo credits Befehl, prokodo Konto]
+description: Aktuelles prokodo-Guthaben mit prokodo credits abrufen.
+keywords: [prokodo credits, prokodo Guthaben, prokodo credits Befehl, prokodo Konto]
 ---
 
-# credits
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-`prokodo credits` gibt das verbleibende Guthaben und eine kurze Nutzungsübersicht zurück.
+# `prokodo credits`
 
-## Verwendung
+Aktuelles Guthaben anzeigen.
 
 ```bash
-prokodo credits [Optionen]
+prokodo credits [globale Optionen]
 ```
 
-## Optionen
+## Beschreibung
 
-| Flag     | Typ     | Standard | Beschreibung                        |
-| -------- | ------- | -------- | ----------------------------------- |
-| `--json` | Boolean | `false`  | Maschinenlesbare Ausgabe aktivieren |
+Verbindet sich mit der prokodo API über den aufgelösten API-Schlüssel und gibt das aktuelle Guthaben aus.
 
 ## Anforderungen
 
-Ein gültiger API-Schlüssel (via `prokodo auth login` oder `PROKODO_API_KEY`).
+Ein API-Schlüssel muss über eine der [Standardprioritätsquellen](auth#auth-whoami) konfiguriert sein:
 
-## Ausgabe (Standard)
+1. `--api-key` globales Flag
+2. `PROKODO_API_KEY` Umgebungsvariable
+3. `~/.config/prokodo/credentials.json`
+
+## Beispiele
+
+<Tabs groupId="output-mode">
+  <TabItem value="text" label="Textausgabe">
+
+```bash
+prokodo credits
+```
 
 ```
-Guthaben       42
-Genutzt gesamt  8
-Plan           Pro
+ℹ Guthaben: 42 credits
 ```
 
-## JSON-Schema
+  </TabItem>
+  <TabItem value="json" label="--json">
 
 ```bash
 prokodo credits --json
@@ -43,33 +51,46 @@ prokodo credits --json
 
 ```json
 {
-  "credits": {
-    "remaining": 42,
-    "used": 8,
-    "total": 50
-  },
-  "plan": "pro",
-  "accountId": "acc_123abc"
+  "balance": 42,
+  "unit": "credit",
+  "stub": false
 }
 ```
 
-| Feld                | Typ      | Beschreibung                                     |
-| ------------------- | -------- | ------------------------------------------------ |
-| `credits.remaining` | `number` | Verfügbares Guthaben                             |
-| `credits.used`      | `number` | In diesem Abrechnungszeitraum genutztes Guthaben |
-| `credits.total`     | `number` | Gesamtguthaben laut Abo                          |
-| `plan`              | `string` | Aktueller Abonnement-Plan                        |
-| `accountId`         | `string` | Interner prokodo-Konto-Identifikator             |
+  </TabItem>
+</Tabs>
 
-## Beispiele
+## JSON-Ausgabeschema
+
+```json
+{
+  "balance": 42,
+  "unit": "credit",
+  "stub": false
+}
+```
+
+| Feld      | Typ       | Beschreibung                                        |
+| --------- | --------- | --------------------------------------------------- |
+| `balance` | `number`  | Aktuelles numerisches Guthaben                      |
+| `unit`    | `string`  | Einheit (immer `"credit"`)                          |
+| `stub`    | `boolean` | `true` wenn das Guthabensystem im Vorschaumodus ist |
+
+## In Skripten verwenden
 
 ```bash
-# Interaktive Guthabenzusammenfassung
-prokodo credits
-
-# Für CI/Skripting
-GUTHABENSTAND=$(prokodo credits --json | jq '.credits.remaining')
-if [ "$GUTHABENSTAND" -lt 5 ]; then
-  echo "Warnung: Guthaben wird knapp!"
+# Workflow stoppen wenn Guthaben zu niedrig
+GUTHABEN=$(prokodo credits --json | jq .balance)
+if [[ "$GUTHABEN" -lt 5 ]]; then
+  echo "Warnung: Guthaben zu niedrig für Verifizierung"
+  exit 1
 fi
 ```
+
+## Exit-Codes
+
+| Code | Ursache                         |
+| ---- | ------------------------------- |
+| `0`  | Guthaben erfolgreich abgerufen  |
+| `2`  | Kein API-Schlüssel konfiguriert |
+| `1`  | API-Anfrage fehlgeschlagen      |

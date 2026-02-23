@@ -85,6 +85,17 @@ const config: Config = {
           editUrl: 'https://github.com/prokodo-agency/cli/edit/main/public/docs/',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
+          // Versioning — label the current (unreleased) track.
+          // To freeze a release: run `docusaurus docs:version <version>`,
+          // then add an entry to `versions` below and update `lastVersion`.
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: '0.1.0',
+              badge: true,
+              banner: 'none',
+            },
+          },
         },
         blog: false,
         theme: {

@@ -13,55 +13,185 @@ keywords:
   ]
 ---
 
-# auth
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-Der `auth`-Befehl verwaltet den prokodo API-Schlüssel in deiner lokalen Umgebung.
+# `prokodo auth`
+
+API-Schlüssel-Zugangsdaten verwalten.
+
+```
+prokodo auth <unterbefehl> [Optionen]
+```
 
 ## Unterbefehle
 
 ### `auth login`
 
-Schlüssel speichern und gegen die API validieren.
+API-Schlüssel in der Zugangsdatei unter `~/.config/prokodo/credentials.json` speichern.
 
 ```bash
 prokodo auth login --key <schluessel>
 ```
 
-| Flag    | Typ    | Standard | Beschreibung                                                   |
-| ------- | ------ | -------- | -------------------------------------------------------------- |
-| `--key` | String | —        | prokodo API-Schlüssel (beginnt mit `pk_`) |
+**Optionen**
 
-Der Schlüssel wird in `~/.config/prokodo/credentials.json` mit `0600`-Dateiberechtigungen gespeichert, sodass keine anderen Nutzer ihn lesen können.
+| Flag           | Typ    | Beschreibung                                                                |
+| -------------- | ------ | --------------------------------------------------------------------------- |
+| `--key <wert>` | String | Zu speichernder API-Schlüssel. Weglassen für interaktive Eingabe (nur TTY). |
+
+**Verhalten**
+
+1. Schlüsselformat validieren (≥ 8 Zeichen, keine `<`- oder `>`-Platzhalter)
+2. Health-Check gegen API durchführen (ohne Dateiänderung), um Schlüssel zu bestätigen
+3. `~/.config/prokodo/credentials.json` mit `0600`-Berechtigungen schreiben
+4. Maskierten Schlüsselhinweis bei Erfolg ausgeben
+
+**Beispiele**
+
+<Tabs groupId="login-mode">
+  <TabItem value="text" label="Textausgabe">
+
+```bash
+prokodo auth login --key pk_abc123xyz789
+```
+
+```
+✓ Erfolgreich authentifiziert (••••••••xyz789)
+ℹ Zugangsdaten gespeichert unter: /Users/du/.config/prokodo/credentials.json
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+prokodo auth login --key pk_abc123xyz789 --json
+```
+
+```json
+{ "authenticated": true, "keyHint": "••••••••xyz789" }
+```
+
+  </TabItem>
+</Tabs>
+
+**Exit-Codes**
+
+| Code | Ursache                                    |
+| ---- | ------------------------------------------ |
+| `0`  | Schlüssel erfolgreich gespeichert          |
+| `2`  | Kein Schlüssel im nicht-interaktiven Modus |
+| `2`  | Schlüssel besteht Format-Validierung nicht |
+| `1`  | API hat den Schlüssel abgelehnt            |
+
+:::note
+Wenn `stdin` kein TTY ist (CI, Docker, Pipe), ist das `--key`-Flag erforderlich. Die CLI beendet sich mit `2` und einer Erklärung, wenn es fehlt.
+:::
 
 :::tip
 In CI/CD-Umgebungen wird empfohlen, die Umgebungsvariable `PROKODO_API_KEY` zu verwenden, anstatt `auth login` auszuführen. Die CLI liest diese automatisch aus.
 :::
 
+---
+
 ### `auth logout`
 
-Gespeicherten Schlüssel aus dem lokalen System entfernen.
+Gespeicherte Zugangsdatei entfernen.
 
 ```bash
 prokodo auth logout
 ```
 
-Kein Flag erforderlich. Nach der Abmeldung schlägt jeder Befehl fehl, der einen gültigen Schlüssel benötigt, sofern nicht `PROKODO_API_KEY` gesetzt ist.
+**Verhalten**
+
+- Löscht `~/.config/prokodo/credentials.json`, falls vorhanden
+- Beendet sich mit `0`, unabhängig davon ob Zugangsdaten vorhanden waren (idempotent)
+- Gibt an, ob Zugangsdaten tatsächlich entfernt wurden
+
+**Beispiele**
+
+<Tabs groupId="logout-mode">
+  <TabItem value="text" label="Textausgabe">
+
+```bash
+prokodo auth logout
+```
+
+```
+✓ Zugangsdaten entfernt.
+```
+
+oder wenn nicht angemeldet:
+
+```
+ℹ Keine Zugangsdaten gespeichert.
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+prokodo auth logout --json
+```
+
+```json
+{ "loggedOut": true }
+```
+
+oder:
+
+```json
+{ "loggedOut": false }
+```
+
+  </TabItem>
+</Tabs>
+
+---
 
 ### `auth whoami`
 
-Den aktuell konfigurierten Schlüssel anzeigen (teilweise verborgen).
+Aktuell aktiven API-Schlüssel anzeigen (maskiert — letzte 4 Zeichen sichtbar) und Quelle.
 
 ```bash
 prokodo auth whoami
-# → API key: ••••••••abcd  (Quelle: credentials.json)
 ```
 
-Wenn kein Schlüssel konfiguriert ist:
+**Prioritätskette** (höchste bis niedrigste):
+
+1. `--api-key` CLI-Flag
+2. `PROKODO_API_KEY` Umgebungsvariable
+3. `~/.config/prokodo/credentials.json`
+
+Falls keiner gefunden wird, Exit `2` mit Hinweisen.
+
+**Beispiele**
+
+<Tabs groupId="whoami-mode">
+  <TabItem value="text" label="Textausgabe">
+
+```bash
+prokodo auth whoami
+```
 
 ```
-✗ Kein API-Schlüssel konfiguriert.
-  Führe `prokodo auth login --key <schluessel>` aus oder setze PROKODO_API_KEY.
+API key: ••••••••xyz789
+Source: credentials file
 ```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+PROKODO_API_KEY=pk_test prokodo auth whoami --json
+```
+
+```json
+{ "keyHint": "••••test" }
+```
+
+  </TabItem>
+</Tabs>
 
 ## Speicherort der Zugangsdaten
 
@@ -70,16 +200,4 @@ Wenn kein Schlüssel konfiguriert ist:
 | macOS / Linux  | `~/.config/prokodo/credentials.json` |
 | Windows        | `%APPDATA%\prokodo\credentials.json` |
 
-## JSON-Ausgabe
-
-```bash
-prokodo auth whoami --json
-```
-
-```json
-{
-  "key": "••••••••abcd",
-  "source": "credentials.json",
-  "valid": true
-}
-```
+Die Datei wird auf POSIX-Systemen mit `0600`-Berechtigungen erstellt. Beim Start wird eine Warnung ausgegeben, wenn die Berechtigungen zu weitreichend sind.

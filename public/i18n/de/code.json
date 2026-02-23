@@ -519,7 +519,8 @@
   },
   "prokodo.homepage.feature.ci.description": {
     "message": "Jeder Befehl unterstützt --json-Ausgabe, Umgebungsvariablen-Authentifizierung (PROKODO_API_KEY) und beendet sich mit vorhersehbaren Exit-Codes.",
-    "description": "Feature card description for CI-first design"  },
+    "description": "Feature card description for CI-first design"
+  },
   "prokodo.homepage.hero.alsoAvailable": {
     "message": "Auch verfügbar via",
     "description": "Label in the hero install snippet pointing to Homebrew & Docker alternatives"

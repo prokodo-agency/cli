@@ -457,78 +457,62 @@ describe('prokodo init', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('exits 0 and creates .prokodo/config.json with the correct slug', () => {
-    const { code } = run(['init', '--slug', 'my-project'], { cwd: tmpDir });
+  it('exits 0 and creates .prokodo/config.json', () => {
+    const { code } = run(['init'], { cwd: tmpDir });
     expect(code).toBe(0);
+    expect(fs.existsSync(path.join(tmpDir, '.prokodo', 'config.json'))).toBe(true);
+  });
 
-    const cfgPath = path.join(tmpDir, '.prokodo', 'config.json');
-    expect(fs.existsSync(cfgPath)).toBe(true);
-    const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('my-project');
+  it('creates config with projectType when --type n8n-node is given', () => {
+    const { code } = run(['init', '--type', 'n8n-node'], { cwd: tmpDir });
+    expect(code).toBe(0);
+    const cfg = JSON.parse(
+      fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
+    ) as { projectType: string };
+    expect(cfg.projectType).toBe('n8n-node');
   });
 
   it('--json emits { created: true, path, config } on stdout', () => {
-    const { code, stdout } = run(['--json', 'init', '--slug', 'json-slug'], { cwd: tmpDir });
+    const { code, stdout } = run(['--json', 'init', '--type', 'n8n-node'], { cwd: tmpDir });
     expect(code).toBe(0);
-    const json = JSON.parse(stdout) as {
-      created: boolean;
-      path: string;
-      config: { projectSlug: string };
-    };
+    const json = JSON.parse(stdout) as { created: boolean; path: string; config: object };
     expect(json.created).toBe(true);
-    expect(json.config.projectSlug).toBe('json-slug');
     expect(json.path).toContain('.prokodo');
-  });
-
-  it('--defaults derives slug from the current directory name', () => {
-    const slugDir = path.join(tmpDir, 'my-awesome-app');
-    fs.mkdirSync(slugDir);
-    const { code } = run(['init', '--defaults'], { cwd: slugDir });
-    expect(code).toBe(0);
-
-    const cfg = JSON.parse(
-      fs.readFileSync(path.join(slugDir, '.prokodo', 'config.json'), 'utf8'),
-    ) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('my-awesome-app');
+    expect(typeof json.config).toBe('object');
   });
 
   it('warns and exits 0 (no overwrite) when config exists and --force is not used', () => {
-    run(['init', '--slug', 'first'], { cwd: tmpDir });
-    const { code, stderr } = run(['init', '--slug', 'second'], { cwd: tmpDir });
+    run(['init'], { cwd: tmpDir });
+    const { code, stderr } = run(['init'], { cwd: tmpDir });
     expect(code).toBe(0);
     // warn() writes to stderr
     expect(stderr).toMatch(/already exists|--force/i);
-    // Original slug is preserved
-    const cfg = JSON.parse(
-      fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
-    ) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('first');
   });
 
   it('--force overwrites an existing config', () => {
-    run(['init', '--slug', 'first'], { cwd: tmpDir });
-    const { code } = run(['init', '--slug', 'second', '--force'], { cwd: tmpDir });
+    run(['init', '--type', 'n8n-node'], { cwd: tmpDir });
+    const { code } = run(['init', '--force'], { cwd: tmpDir });
     expect(code).toBe(0);
+    // After --force with no --type, config should be empty object
     const cfg = JSON.parse(
       fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
-    ) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('second');
+    ) as Record<string, unknown>;
+    expect(cfg).toEqual({});
   });
 
-  it('config file contains projectSlug, verifyGlobs (array), and timeout (number)', () => {
-    run(['init', '--slug', 'field-test'], { cwd: tmpDir });
-    const cfg = JSON.parse(
-      fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
-    ) as { projectSlug: string; verifyGlobs: string[]; timeout: number };
-    expect(cfg.projectSlug).toBe('field-test');
-    expect(Array.isArray(cfg.verifyGlobs)).toBe(true);
-    expect(cfg.verifyGlobs.length).toBeGreaterThan(0);
-    expect(typeof cfg.timeout).toBe('number');
-    expect(cfg.timeout).toBeGreaterThan(0);
+  it('exits 2 for --type n8n-workflow (not yet supported)', () => {
+    const { code, stderr } = run(['init', '--type', 'n8n-workflow'], { cwd: tmpDir });
+    expect(code).toBe(2);
+    expect(stderr).toMatch(/n8n-workflow.*not yet supported/i);
+  });
+
+  it('exits 2 for an unrecognised --type value', () => {
+    const { code } = run(['init', '--type', 'unknown-type'], { cwd: tmpDir });
+    expect(code).toBe(2);
   });
 
   it('text mode prints a success message with the relative config path', () => {
-    const { stdout } = run(['init', '--slug', 'echo-test'], { cwd: tmpDir });
+    const { stdout } = run(['init'], { cwd: tmpDir });
     expect(stdout).toMatch(/\.prokodo/);
   });
 
@@ -700,6 +684,43 @@ describe('prokodo verify', () => {
 
   it('verify --help exits 0', () => {
     expect(run(['verify', '--help']).code).toBe(0);
+  });
+
+  // ── npm package mode ───────────────────────────────────────────────────────
+
+  it('npm mode: exits 2 with "--type is required" when no --type given', () => {
+    const { code, stderr } = run(['verify', '@scope/my-pkg']);
+    expect(code).toBe(2);
+    expect(stderr).toMatch(/--type.*required|type.*required/i);
+  });
+
+  it('npm mode: exits 2 with file-path blocked message for .json arg', () => {
+    const { code, stderr } = run(['verify', 'workflow.json']);
+    expect(code).toBe(2);
+    expect(stderr).toMatch(/not yet supported|npm package/i);
+  });
+
+  it('npm mode: exits 2 with "n8n-workflow not yet supported" for --type n8n-workflow', () => {
+    const { code, stderr } = run(['verify', '--type', 'n8n-workflow']);
+    expect(code).toBe(2);
+    expect(stderr).toMatch(/n8n-workflow.*not yet supported/i);
+  });
+
+  it('npm mode: proceeds past arg validation and exits non-zero for network error', () => {
+    // With a fake API key and a dead API URL, npm mode should pass all argument
+    // validation and fail at the network level (not exit 2 from a config/arg error).
+    const { code, stderr } = run(
+      ['verify', '@scope/my-pkg', '--type', 'n8n-node', '--api-url', DEAD_API_URL],
+      {
+        env: {
+          PROKODO_API_KEY: 'pk_test_integration_1234567890',
+          PROKODO_API_BASE_URL: undefined,
+        },
+      },
+    );
+    // exit 1 = network/API error (not exit 2 = arg/config validation error)
+    expect(code).toBe(1);
+    expect(stderr).toMatch(/network|error|connect|refused|ECONNREFUSED/i);
   });
 });
 

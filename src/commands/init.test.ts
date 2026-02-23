@@ -5,29 +5,19 @@ import { Command } from 'commander';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-const mockIsInteractive = jest.fn(() => false);
 const mockSuccess = jest.fn();
 const mockInfo = jest.fn();
 const mockWarn = jest.fn();
-const mockFatal = jest.fn();
+const mockFatal = jest.fn((msg: string, code: number = 1) => {
+  throw new Error(`fatal:${code}:${msg}`);
+});
 const mockEmitJson = jest.fn();
 
-// Mock readline so the interactive prompt resolves immediately
-const mockRlQuestion = jest.fn((q: string, cb: (a: string) => void) => cb('interactive-slug'));
-const mockRlClose = jest.fn();
-jest.mock('node:readline', () => ({
-  createInterface: jest.fn(() => ({ question: mockRlQuestion, close: mockRlClose })),
-}));
-
-jest.mock('../lib/platform', () => ({
-  isInteractive: () => mockIsInteractive(),
-  getDefaultApiUrl: jest.fn(() => 'https://test.invalid'),
-}));
 jest.mock('../lib/logger', () => ({
   success: (...args: unknown[]) => mockSuccess(...args),
   info: (...args: unknown[]) => mockInfo(...args),
   warn: (...args: unknown[]) => mockWarn(...args),
-  fatal: (...args: unknown[]) => mockFatal(...args),
+  fatal: (msg: string, code?: number) => mockFatal(msg, code),
   emitJson: (...args: unknown[]) => mockEmitJson(...args),
   error: jest.fn(),
   debug: jest.fn(),
@@ -53,8 +43,7 @@ function makeProgram(): Command {
 }
 
 interface RunInitOptions {
-  slug?: string;
-  defaults?: boolean;
+  type?: string;
   force?: boolean;
   json?: boolean;
   cwd?: string;
@@ -76,14 +65,15 @@ async function runInit(opts: RunInitOptions = {}): Promise<{ exitCode?: number }
     registerInitCommand(program);
 
     const args = ['node', 'prokodo', 'init'];
-    if (opts.slug) args.push('--slug', opts.slug);
-    if (opts.defaults) args.push('--defaults');
+    if (opts.type) args.push('--type', opts.type);
     if (opts.force) args.push('--force');
 
     await program.parseAsync(args);
   } catch (err) {
     if (err instanceof Error && err.message.startsWith('exit:')) {
       exitCode = Number(err.message.slice(5));
+    } else if (err instanceof Error && err.message.startsWith('fatal:')) {
+      exitCode = Number(err.message.split(':')[1] ?? 1);
     } else {
       throw err;
     }
@@ -97,7 +87,7 @@ async function runInit(opts: RunInitOptions = {}): Promise<{ exitCode?: number }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('registerInitCommand — --slug option', () => {
+describe('registerInitCommand — basic creation', () => {
   let tmpDir: string;
 
   beforeEach(() => {
@@ -109,105 +99,93 @@ describe('registerInitCommand — --slug option', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('creates config file with provided slug', async () => {
-    await runInit({ slug: 'my-project', cwd: tmpDir });
+  it('creates an empty config file without --type', async () => {
+    await runInit({ cwd: tmpDir });
     const configFile = path.join(tmpDir, '.prokodo', 'config.json');
     expect(fs.existsSync(configFile)).toBe(true);
-    const cfg = JSON.parse(fs.readFileSync(configFile, 'utf8')) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('my-project');
+    const cfg = JSON.parse(fs.readFileSync(configFile, 'utf8')) as Record<string, unknown>;
+    expect(cfg).toEqual({});
+  });
+
+  it('creates config with projectType when --type n8n-node is given', async () => {
+    await runInit({ type: 'n8n-node', cwd: tmpDir });
+    const cfg = JSON.parse(
+      fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
+    ) as { projectType: string };
+    expect(cfg.projectType).toBe('n8n-node');
+  });
+
+  // TODO: re-enable once n8n-workflow verification is implemented
+  it.skip('creates config with projectType when --type n8n-workflow is given', async () => {
+    await runInit({ type: 'n8n-workflow', cwd: tmpDir });
+    const cfg = JSON.parse(
+      fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
+    ) as { projectType: string };
+    expect(cfg.projectType).toBe('n8n-workflow');
   });
 
   it('calls success in text mode', async () => {
-    await runInit({ slug: 'test-slug', cwd: tmpDir });
+    await runInit({ cwd: tmpDir });
     expect(mockSuccess).toHaveBeenCalled();
   });
 
   it('emits JSON when --json flag is set', async () => {
-    await runInit({ slug: 'test-slug', json: true, cwd: tmpDir });
+    await runInit({ type: 'n8n-node', json: true, cwd: tmpDir });
     expect(mockEmitJson).toHaveBeenCalledWith(
       expect.objectContaining({ created: true, path: expect.any(String) }),
     );
   });
 
-  it('trims whitespace from slug', async () => {
-    await runInit({ slug: '  trimmed-slug  ', cwd: tmpDir });
-    const configFile = path.join(tmpDir, '.prokodo', 'config.json');
-    const cfg = JSON.parse(fs.readFileSync(configFile, 'utf8')) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('trimmed-slug');
-  });
-});
-
-describe('registerInitCommand — --defaults option', () => {
-  let tmpDir: string;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-init-defaults-'));
-  });
-
-  afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  it('derives slug from directory name when --defaults is used', async () => {
-    const slugDir = path.join(tmpDir, 'my-cool-project');
-    fs.mkdirSync(slugDir);
-
-    await runInit({ defaults: true, cwd: slugDir });
-
-    const configFile = path.join(slugDir, '.prokodo', 'config.json');
-    expect(fs.existsSync(configFile)).toBe(true);
-    const cfg = JSON.parse(fs.readFileSync(configFile, 'utf8')) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('my-cool-project');
-  });
-
-  it('derives slug from directory name when non-interactive', async () => {
-    mockIsInteractive.mockReturnValue(false);
-    const slugDir = path.join(tmpDir, 'auto-slug-dir');
-    fs.mkdirSync(slugDir);
-
-    await runInit({ cwd: slugDir });
-
-    const configFile = path.join(slugDir, '.prokodo', 'config.json');
-    const cfg = JSON.parse(fs.readFileSync(configFile, 'utf8')) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('auto-slug-dir');
-  });
-
-  it('sanitises directory name to lowercase-dashes', async () => {
-    const slugDir = path.join(tmpDir, 'My_Special Project');
-    fs.mkdirSync(slugDir);
-
-    await runInit({ defaults: true, cwd: slugDir });
-
-    const configFile = path.join(slugDir, '.prokodo', 'config.json');
-    const cfg = JSON.parse(fs.readFileSync(configFile, 'utf8')) as { projectSlug: string };
-    expect(cfg.projectSlug).toMatch(/^[a-z0-9-]+$/);
-  });
-});
-
-describe('registerInitCommand — interactive mode', () => {
-  let tmpDir: string;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    // Reset readline mock to provide a valid slug
-    mockRlQuestion.mockImplementation((_q: string, cb: (a: string) => void) =>
-      cb('interactive-slug'),
-    );
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-init-interactive-'));
-  });
-
-  afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  it('uses interactive prompt when no --slug or --defaults and isInteractive=true', async () => {
-    mockIsInteractive.mockReturnValue(true);
+  it('shows auto-detect notice in text mode when no type given', async () => {
     await runInit({ cwd: tmpDir });
-    const configFile = path.join(tmpDir, '.prokodo', 'config.json');
-    expect(fs.existsSync(configFile)).toBe(true);
-    const cfg = JSON.parse(fs.readFileSync(configFile, 'utf8')) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('interactive-slug');
+    const msgs = mockInfo.mock.calls.map((c) => String(c[0]));
+    expect(msgs.some((m) => m.includes('auto-detected'))).toBe(true);
+  });
+
+  it('shows projectType in text mode when --type given', async () => {
+    await runInit({ type: 'n8n-node', cwd: tmpDir });
+    const msgs = mockInfo.mock.calls.map((c) => String(c[0]));
+    expect(msgs.some((m) => m.includes('n8n-node'))).toBe(true);
+  });
+});
+
+describe('registerInitCommand — invalid --type', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-init-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('calls fatal when --type is invalid', async () => {
+    try {
+      await runInit({ type: 'unknown-type', cwd: tmpDir });
+    } catch {
+      // expected
+    }
+    expect(mockFatal).toHaveBeenCalled();
+  });
+
+  it('does not create config file on invalid type', async () => {
+    try {
+      await runInit({ type: 'invalid', cwd: tmpDir });
+    } catch {
+      // expected
+    }
+    expect(fs.existsSync(path.join(tmpDir, '.prokodo', 'config.json'))).toBe(false);
+  });
+
+  it('calls fatal with "not yet supported" for --type n8n-workflow', async () => {
+    const result = await runInit({ type: 'n8n-workflow', cwd: tmpDir });
+    expect(mockFatal).toHaveBeenCalledWith(
+      expect.stringContaining('n8n-workflow is not yet supported'),
+      2,
+    );
+    expect(result.exitCode).toBe(2);
   });
 });
 
@@ -223,35 +201,47 @@ describe('registerInitCommand — existing config', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('warns and does not create new config when config exists without --force', async () => {
-    // Create existing config
-    fs.mkdirSync(path.join(tmpDir, '.prokodo'), { recursive: true });
-    const existingCfg = JSON.stringify(
-      { projectSlug: 'existing', verifyGlobs: ['src/**'], timeout: 300 },
-      null,
-      2,
-    );
-    fs.writeFileSync(path.join(tmpDir, '.prokodo', 'config.json'), existingCfg);
-
-    await runInit({ slug: 'new-slug', cwd: tmpDir });
-
-    // warn should be called for the conflict message
-    expect(mockWarn).toHaveBeenCalled();
-  });
-
-  it('overwrites config when --force is used', async () => {
-    // Create existing config
+  it('warns and does not overwrite when config exists without --force', async () => {
     fs.mkdirSync(path.join(tmpDir, '.prokodo'), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, '.prokodo', 'config.json'),
-      JSON.stringify({ projectSlug: 'old', verifyGlobs: ['src/**'], timeout: 300 }, null, 2),
+      JSON.stringify({ projectType: 'n8n-node' }, null, 2),
     );
 
-    await runInit({ slug: 'new-slug', force: true, cwd: tmpDir });
+    await runInit({ cwd: tmpDir });
+
+    expect(mockWarn).toHaveBeenCalled();
+    const cfg = JSON.parse(
+      fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
+    ) as { projectType: string };
+    expect(cfg.projectType).toBe('n8n-node');
+  });
+
+  it('overwrites config when --force is used', async () => {
+    fs.mkdirSync(path.join(tmpDir, '.prokodo'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, '.prokodo', 'config.json'),
+      JSON.stringify({ projectType: 'n8n-node' }, null, 2),
+    );
+
+    // Overwrite with an empty config (auto-detect at verify time)
+    await runInit({ force: true, cwd: tmpDir });
 
     const cfg = JSON.parse(
       fs.readFileSync(path.join(tmpDir, '.prokodo', 'config.json'), 'utf8'),
-    ) as { projectSlug: string };
-    expect(cfg.projectSlug).toBe('new-slug');
+    ) as Record<string, unknown>;
+    expect(cfg).toEqual({});
+  });
+
+  it('emits JSON with created: true on force overwrite', async () => {
+    fs.mkdirSync(path.join(tmpDir, '.prokodo'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, '.prokodo', 'config.json'),
+      JSON.stringify({ projectType: 'n8n-node' }, null, 2),
+    );
+
+    await runInit({ force: true, json: true, cwd: tmpDir });
+
+    expect(mockEmitJson).toHaveBeenCalledWith(expect.objectContaining({ created: true }));
   });
 });

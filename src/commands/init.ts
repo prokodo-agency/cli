@@ -1,68 +1,45 @@
 import type { Command } from 'commander';
+import fs from 'node:fs';
 import readline from 'node:readline';
 import path from 'node:path';
-import {
-  saveConfig,
-  configPath,
-  buildDefaultConfig,
-  loadConfig,
-  type ProjectConfig,
-} from '../lib/config';
-import { isInteractive } from '../lib/platform';
+import { saveConfig, configPath, type ProjectConfig } from '../lib/config';
 import { success, info, warn, emitJson, fatal } from '../lib/logger';
 
 export function registerInitCommand(program: Command): void {
   program
     .command('init')
     .description('Scaffold a .prokodo/config.json in the current project')
-    .option('--slug <slug>', 'Project slug (skip prompt)')
-    .option('--defaults', 'Accept all defaults without prompting')
+    .option('--type <type>', 'Project type (currently only n8n-node is supported)')
     .option('--force', 'Overwrite existing config')
-    .action(async (opts: { slug?: string; defaults?: boolean; force?: boolean }) => {
+    .action(async (opts: { type?: string; force?: boolean }) => {
       const { json: jsonMode } = program.opts<{ json: boolean }>();
       const basePath = process.cwd();
       const filePath = configPath(basePath);
 
-      // Check for existing config
-      try {
-        loadConfig(basePath);
-        if (!opts.force) {
-          warn(
-            `Config already exists at ${path.relative(basePath, filePath)}. Use --force to overwrite.`,
-          );
-          process.exit(0);
+      // Validate --type if provided
+      if (opts.type && opts.type !== 'n8n-node') {
+        if (opts.type === 'n8n-workflow') {
+          // TODO: enable once n8n-workflow verification logic is implemented
+          fatal('n8n-workflow is not yet supported.', 2);
         }
-      } catch {
-        // No existing config — proceed
+        fatal(`--type must be "n8n-node", got "${opts.type}".`, 2);
       }
 
-      let projectSlug: string;
-
-      if (opts.slug) {
-        projectSlug = opts.slug.trim();
-      } else if (opts.defaults || !isInteractive()) {
-        // Derive from directory name
-        projectSlug = path
-          .basename(basePath)
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, '-');
-      } else {
-        /* istanbul ignore next */
-        const defaultSlug = path
-          .basename(basePath)
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, '-');
-        /* istanbul ignore next */
-        projectSlug = await prompt(`Project slug [${defaultSlug}]: `, defaultSlug);
+      // Check for existing config
+      const configExists = fs.existsSync(filePath);
+      if (configExists && !opts.force) {
+        warn(
+          `Config already exists at ${path.relative(basePath, filePath)}. Use --force to overwrite.`,
+        );
+        return;
       }
 
-      /* istanbul ignore next */
-      if (!projectSlug || projectSlug.trim() === '') {
-        /* istanbul ignore next */
-        fatal('Project slug cannot be empty.', 2);
+      // Build minimal config — only include what the user explicitly set
+      const config: ProjectConfig = {};
+      if (opts.type) {
+        config.projectType = opts.type as ProjectConfig['projectType'];
       }
 
-      const config: ProjectConfig = buildDefaultConfig({ projectSlug });
       saveConfig(config, basePath);
 
       if (jsonMode) {
@@ -71,9 +48,11 @@ export function registerInitCommand(program: Command): void {
       }
 
       success(`Created ${path.relative(basePath, filePath)}`);
-      info(`  projectSlug : ${config.projectSlug}`);
-      info(`  verifyGlobs : ${config.verifyGlobs.join(', ')}`);
-      info(`  timeout     : ${config.timeout}s`);
+      if (config.projectType) {
+        info(`  projectType : ${config.projectType}`);
+      } else {
+        info('  projectType : (auto-detected at verify time)');
+      }
       info('');
       info('Run "prokodo verify" when ready.');
     });
@@ -91,3 +70,6 @@ function prompt(question: string, defaultValue: string): Promise<string> {
     });
   });
 }
+
+// keep TS happy — prompt is reserved for future interactive init
+void (prompt as unknown);

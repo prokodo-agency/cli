@@ -7,6 +7,11 @@ import { useColorMode } from '@docusaurus/theme-common';
 import { useAlternatePageUtils } from '@docusaurus/theme-common/internal';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Translate, { translate } from '@docusaurus/Translate';
+import {
+  useVersions,
+  useLatestVersion,
+  useDocsPreferredVersion,
+} from '@docusaurus/plugin-content-docs/client';
 import { Icon } from '@prokodo/ui/icon';
 
 import styles from './index.module.css';
@@ -15,6 +20,41 @@ import { MARKETPLACE_URL, GITHUB_CLI_URL } from '../../constants';
 // ─── Nav structure ────────────────────────────────────────────────────────────
 
 type NavItem = { label: string } & ({ to: string; href?: never } | { href: string; to?: never });
+
+// ─── Version dropdown ─────────────────────────────────────────────────────────
+
+function VersionDropdown(): ReactNode | null {
+  const versions = useVersions();
+  const latestVersion = useLatestVersion();
+  const { preferredVersion, savePreferredVersionName } = useDocsPreferredVersion();
+  const currentVersion = preferredVersion ?? latestVersion;
+
+  // Only render once there are multiple versions — invisible until a release is frozen
+  if (versions.length <= 1) return null;
+
+  return (
+    <div className={styles.versionDropdown}>
+      <select
+        value={currentVersion.name}
+        onChange={(e) => {
+          const v = versions.find((ver) => ver.name === e.target.value);
+          if (v) {
+            savePreferredVersionName(v.name);
+            window.location.href = v.path;
+          }
+        }}
+        className={styles.versionSelect}
+        aria-label="Docs version"
+      >
+        {versions.map((v) => (
+          <option key={v.name} value={v.name}>
+            {v.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -72,8 +112,9 @@ export default function Navbar(): ReactNode {
           </ul>
         </div>
 
-        {/* Right: locale toggle + theme toggle + GitHub icon */}
+        {/* Right: version picker + locale toggle + theme toggle + GitHub icon */}
         <div className={styles.actions}>
+          <VersionDropdown />
           {otherLocale && otherLocaleUrl && (
             <a
               href={otherLocaleUrl}
@@ -150,8 +191,7 @@ export default function Navbar(): ReactNode {
             className={styles.mobileLink}
             onClick={() => setMobileOpen(false)}
           >
-            <Icon name="GithubIcon" size="xs" />
-            {' '}
+            <Icon name="GithubIcon" size="xs" />{' '}
             <Translate id="prokodo.navbar.mobile.github">GitHub</Translate>
           </DocLink>
           {otherLocale && otherLocaleUrl && (

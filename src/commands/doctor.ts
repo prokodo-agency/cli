@@ -69,7 +69,7 @@ export function registerDoctorCommand(program: Command): void {
         try {
           const cfg = loadConfig();
           passed = true;
-          detail = `projectSlug=${cfg.projectSlug}`;
+          detail = `projectType=${cfg.projectType ?? 'auto-detected'}`;
         } catch (err) {
           detail = err instanceof Error ? err.message : /* istanbul ignore next */ String(err);
         }

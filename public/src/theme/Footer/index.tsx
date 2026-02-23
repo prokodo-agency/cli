@@ -13,8 +13,18 @@ type FooterLink =
   | { label: string; href: string; to?: never };
 
 const SOCIALS: Array<{ name: IconName; href: string; labelId: string; defaultLabel: string }> = [
-  { name: 'GithubIcon', href: GITHUB_URL, labelId: 'prokodo.footer.social.github', defaultLabel: 'GitHub' },
-  { name: 'Linkedin01Icon', href: LINKEDIN_URL, labelId: 'prokodo.footer.social.linkedin', defaultLabel: 'LinkedIn' },
+  {
+    name: 'GithubIcon',
+    href: GITHUB_URL,
+    labelId: 'prokodo.footer.social.github',
+    defaultLabel: 'GitHub',
+  },
+  {
+    name: 'Linkedin01Icon',
+    href: LINKEDIN_URL,
+    labelId: 'prokodo.footer.social.linkedin',
+    defaultLabel: 'LinkedIn',
+  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -25,11 +35,32 @@ export default function Footer(): ReactNode {
       titleId: 'prokodo.footer.section.docs',
       defaultTitle: 'Docs',
       links: [
-        { label: translate({ id: 'prokodo.footer.link.gettingStarted', message: 'Getting Started' }), to: '/docs/getting-started/installation' },
-        { label: translate({ id: 'prokodo.footer.link.commands', message: 'Commands' }), to: '/docs/commands/overview' },
-        { label: translate({ id: 'prokodo.footer.link.configuration', message: 'Configuration' }), to: '/docs/configuration' },
-        { label: translate({ id: 'prokodo.footer.link.cicd', message: 'CI / CD' }), to: '/docs/ci-cd' },
-        { label: translate({ id: 'prokodo.footer.link.troubleshooting', message: 'Troubleshooting' }), to: '/docs/troubleshooting' },
+        {
+          label: translate({
+            id: 'prokodo.footer.link.gettingStarted',
+            message: 'Getting Started',
+          }),
+          to: '/docs/getting-started/installation',
+        },
+        {
+          label: translate({ id: 'prokodo.footer.link.commands', message: 'Commands' }),
+          to: '/docs/commands/overview',
+        },
+        {
+          label: translate({ id: 'prokodo.footer.link.configuration', message: 'Configuration' }),
+          to: '/docs/configuration',
+        },
+        {
+          label: translate({ id: 'prokodo.footer.link.cicd', message: 'CI / CD' }),
+          to: '/docs/ci-cd',
+        },
+        {
+          label: translate({
+            id: 'prokodo.footer.link.troubleshooting',
+            message: 'Troubleshooting',
+          }),
+          to: '/docs/troubleshooting',
+        },
       ],
     },
     {
@@ -47,9 +78,18 @@ export default function Footer(): ReactNode {
       titleId: 'prokodo.footer.section.prokodo',
       defaultTitle: 'prokodo',
       links: [
-        { label: translate({ id: 'prokodo.footer.link.marketplace', message: 'Marketplace' }), href: MARKETPLACE_URL },
-        { label: translate({ id: 'prokodo.footer.link.website', message: 'Website' }), href: PROKODO_URL },
-        { label: translate({ id: 'prokodo.footer.link.github', message: 'GitHub' }), href: GITHUB_URL },
+        {
+          label: translate({ id: 'prokodo.footer.link.marketplace', message: 'Marketplace' }),
+          href: MARKETPLACE_URL,
+        },
+        {
+          label: translate({ id: 'prokodo.footer.link.website', message: 'Website' }),
+          href: PROKODO_URL,
+        },
+        {
+          label: translate({ id: 'prokodo.footer.link.github', message: 'GitHub' }),
+          href: GITHUB_URL,
+        },
       ],
     },
   ];

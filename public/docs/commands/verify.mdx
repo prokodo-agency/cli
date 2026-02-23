@@ -2,7 +2,7 @@
 id: verify
 title: verify
 sidebar_position: 4
-description: Upload project files and trigger a cloud verification run with prokodo verify — flags, exit codes, and JSON output.
+description: Upload project files and trigger a cloud verification run with prokodo verify — zero-config, auto-detection, flags, exit codes, and JSON output.
 keywords:
   [
     prokodo verify,
@@ -10,54 +10,158 @@ keywords:
     prokodo verify command,
     prokodo file upload,
     prokodo verify flags,
+    prokodo zero config,
   ]
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # `prokodo verify`
 
-Upload project files and trigger a cloud verification run.
+Upload project files and trigger a cloud verification run, or verify a published npm package by name. Works out of the box — no config file required.
 
 ```bash
-prokodo verify [options]
+prokodo verify [file] [options]
 ```
 
 ## Prerequisites
 
-Before running `verify` you need:
-
-1. An authenticated API key ([`auth login`](auth))
-2. A `.prokodo/config.json` in the current directory ([`init`](init))
+Only an authenticated API key is required ([`auth login`](auth)). A `.prokodo/config.json` is **optional** — the CLI detects your project type automatically.
 
 ## Options
 
-| Flag                  | Type    | Default      | Description                                   |
-| --------------------- | ------- | ------------ | --------------------------------------------- |
-| `--ref <ref>`         | string  | —            | Git ref, branch, or commit SHA to tag the run |
-| `--timeout <seconds>` | number  | config value | Override the verification timeout             |
-| `--no-logs`           | boolean | `false`      | Disable remote log streaming                  |
+| Flag                  | Type    | Default       | Description                                                                                      |
+| --------------------- | ------- | ------------- | ------------------------------------------------------------------------------------------------ |
+| `[file]`              | string  | —             | Published npm package name (`@scope/name` or `@scope/name@1.2.3`). File paths not yet supported. |
+| `--type <type>`       | string  | auto-detected | Override project type. **Required** when passing an npm package name.                            |
+| `--ref <ref>`         | string  | —             | Git ref, branch, or commit SHA to tag the run                                                    |
+| `--timeout <seconds>` | number  | `300`         | Override the verification timeout                                                                |
+| `--no-logs`           | boolean | `false`       | Disable remote log streaming                                                                     |
+
+### Project types
+
+| Type           | When auto-detected                                | Default files uploaded                  |
+| -------------- | ------------------------------------------------- | --------------------------------------- |
+| `n8n-node`     | `package.json` depends on `n8n`, `n8n-core`, etc. | `src/`, `package.json`, `tsconfig.json` |
+| `n8n-workflow` | _Not yet supported — coming in a future release_  | —                                       |
 
 ## What happens when you run `verify`
 
+**Local project mode** (default — no positional argument):
+
 ```
-1. Load .prokodo/config.json
-2. Validate --timeout (must be a positive finite number)
-3. Collect files matching verifyGlobs
-4. Resolve API key (flag → env var → credentials file)
-5. POST /api/cli/v1/verify/runs
-6. Poll status + stream live logs (unless --no-logs)
-7. Fetch final result
-8. Print summary / emit JSON
-9. Exit 0 (pass) or 1 (fail) or 1 (timeout)
+1. Resolve run context:
+   a. CLI --type flag
+   b. .prokodo/config.json (optional)
+   c. package.json auto-detection
+   d. Default to n8n-node
+2. Detect git remote URL (non-fatal)
+3. Validate --timeout (must be a positive finite number)
+4. Collect files (include list)
+5. Resolve API key (flag → env var → credentials file)
+6. POST /api/cli/v1/verify/runs  { projectType, packageName, files }
+7. Poll status + stream live logs (unless --no-logs)
+8. Fetch final result
+9. Print summary / emit JSON
+10. Exit 0 (pass) or 1 (fail/timeout)
+```
+
+**npm package mode** (`prokodo verify @scope/name --type n8n-node`):
+
+```
+1. Detect positional argument as npm package ref
+2. Validate --type (required in this mode)
+3. Validate --timeout
+4. Resolve API key
+5. POST /api/cli/v1/verify/runs  { projectType, packageRef }  (no file upload)
+6. Server fetches the package from the npm registry
+7. Poll status + stream live logs (unless --no-logs)
+8. Fetch final result
+9. Print summary / emit JSON
+10. Exit 0 (pass) or 1 (fail/timeout)
 ```
 
 ## Examples
 
+<Tabs groupId="output-mode">
+  <TabItem value="text" label="Text output">
+
 ```bash
-# Basic run with live log streaming
+# Auto-detect project type and verify local project
 prokodo verify
 
+# Explicitly set project type
+prokodo verify --type n8n-node
+
+# Verify a published npm package
+prokodo verify @scope/my-n8n-node --type n8n-node
+prokodo verify @scope/my-n8n-node@1.2.3 --type n8n-node
+```
+
+```
+ℹ Starting verification run…
+  Run ID: run_abc123
+  Files: 24
+  [12:00:01] Structure check running…
+  [12:00:03] Resolving dependencies…
+  [12:00:08] Checks complete.
+
+✓ Verification passed: All checks passed
+  Credits used: 1
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+prokodo verify --json 2>/dev/null
+```
+
+```json
+{
+  "runId": "run_abc123",
+  "passed": true,
+  "summary": "All checks passed",
+  "checks": [
+    { "name": "Structure", "passed": true, "message": "24 files validated" },
+    { "name": "Dependencies", "passed": true, "message": "All dependencies resolved" }
+  ],
+  "creditsUsed": 1,
+  "status": "success"
+}
+```
+
+  </TabItem>
+  <TabItem value="fail" label="Failed run">
+
+```bash
+prokodo verify --json 2>/dev/null
+```
+
+```json
+{
+  "runId": "run_def456",
+  "passed": false,
+  "summary": "1 check failed",
+  "checks": [
+    { "name": "Structure", "passed": false, "message": "Missing required export in index.ts" },
+    { "name": "Dependencies", "passed": true }
+  ],
+  "creditsUsed": 1,
+  "status": "failed"
+}
+```
+
+  </TabItem>
+</Tabs>
+
+```bash
 # Tag the run with the current git branch
 prokodo verify --ref $(git rev-parse --abbrev-ref HEAD)
+
+# Verify a specific published version of a package
+prokodo verify @scope/my-n8n-node@2.1.0 --type n8n-node
 
 # Increase timeout for large projects
 prokodo verify --timeout 600
@@ -67,20 +171,46 @@ prokodo verify --no-logs
 
 # Machine-readable output — combine with jq
 prokodo verify --json 2>/dev/null | jq .passed
+prokodo verify --json 2>/dev/null | jq '[.checks[] | select(.passed == false)]'
 ```
 
 ## JSON output schema
 
+| Field         | Type                                               | Description                  |
+| ------------- | -------------------------------------------------- | ---------------------------- |
+| `runId`       | `string`                                           | Unique run identifier        |
+| `passed`      | `boolean`                                          | `true` if all checks passed  |
+| `summary`     | `string`                                           | Human-readable summary       |
+| `checks`      | `{ name, passed, message? }[]`                     | Individual check results     |
+| `creditsUsed` | `number`                                           | Credits consumed by this run |
+| `status`      | `"success" \| "failed" \| "timeout" \| "rejected"` | Final run status             |
+
 ```json
 {
-  "passed": true,
   "runId": "run_abc123",
-  "result": {
-    "status": "success",
-    "summary": "All checks passed"
-  }
+  "passed": true,
+  "summary": "All checks passed",
+  "checks": [
+    { "name": "Structure", "passed": true, "message": "24 files validated" },
+    { "name": "Dependencies", "passed": true }
+  ],
+  "creditsUsed": 1,
+  "status": "success"
 }
 ```
+
+### Rejection codes
+
+When the cloud runner rejects a run, the error message includes a reason code:
+
+| Code                      | Meaning                                 |
+| ------------------------- | --------------------------------------- |
+| `INSUFFICIENT_CREDITS`    | Account balance too low                 |
+| `CONCURRENCY_CAP_REACHED` | Maximum concurrent runs reached         |
+| `INVALID_PAYLOAD`         | Uploaded archive could not be processed |
+| `RUNNER_ERROR`            | Internal cloud error                    |
+| `TIMEOUT`                 | Run exceeded time limit                 |
+| `NOT_IMPLEMENTED`         | Feature not yet enabled                 |
 
 ## Log streaming
 
@@ -98,23 +228,31 @@ prokodo verify --json 2>&1 1>/tmp/result.json
 | `0`  | Verification passed                       |
 | `1`  | Verification failed                       |
 | `1`  | Timed out waiting for the run to complete |
-| `2`  | No `.prokodo/config.json` found           |
+| `2`  | Invalid `--type` value                    |
+| `2`  | `--type` missing for npm package mode     |
 | `2`  | Invalid `--timeout` value                 |
-| `2`  | No files matched `verifyGlobs`            |
+| `2`  | No files found to upload                  |
 | `2`  | No API key configured                     |
 
-## Adjusting `verifyGlobs`
+## Controlling included files
 
-Edit `.prokodo/config.json` to control which files are uploaded:
+By default the CLI uses the `include` list for the detected project type:
+
+| Project type   | Default include                                  |
+| -------------- | ------------------------------------------------ |
+| `n8n-node`     | `src/`, `package.json`, `tsconfig.json`          |
+| `n8n-workflow` | _Not yet supported — coming in a future release_ |
+
+You can override `include` in `.prokodo/config.json`:
 
 ```json
 {
-  "projectSlug": "my-project",
-  "verifyGlobs": ["src/**/*.ts", "src/**/*.tsx", "public/**/*", "package.json"],
+  "projectType": "n8n-node",
+  "include": ["src", "package.json", "tsconfig.json", "assets"],
   "timeout": 300
 }
 ```
 
 :::tip
-Exclude large build artifacts or test fixtures from `verifyGlobs` to keep runs fast and credit-efficient.
+Keep `include` focused on source files — omit `node_modules`, `dist`, and test fixtures to keep runs fast and credit-efficient.
 :::

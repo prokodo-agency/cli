@@ -48,6 +48,8 @@ jobs:
         id: ver
         shell: bash
         run: |
+          PREV=$(node -p "require('./package.json').version")
+          echo "prev_version=${PREV}" >> "$GITHUB_OUTPUT"
           NEW_TAG=$(npm version ${{ inputs.bump }} --no-git-tag-version)
           echo "tag=${NEW_TAG}"       >> "$GITHUB_OUTPUT"
           echo "version=${NEW_TAG#v}" >> "$GITHUB_OUTPUT"
@@ -109,6 +111,42 @@ jobs:
             /^## \[/ && !done { print entry; done=1 }
             { print }
           ' public/docs/changelog.mdx > public/docs/changelog.mdx.tmp
-          mv public/docs/changelog.mdx.tmp public/docs/changelog.mdx public/docs/changelog.mdx
+          mv public/docs/changelog.mdx.tmp public/docs/changelog.mdx
+
+      # Freeze a snapshot of the current docs at the version being shipped,
+      # and update the "current" label so the navbar version chip stays correct.
+      # The versioned_docs/ directory is committed along with the rest below.
+      - name: Install docs dependencies
+        working-directory: public
+        run: pnpm install --frozen-lockfile
+
+      - name: Freeze docs snapshot & update version label
+        shell: bash
+        run: |
+          PREV="${{ steps.ver.outputs.prev_version }}"
+          NEW="${{ steps.ver.outputs.version }}"
+
+          # Freeze the leaving version
+          cd public && pnpm docusaurus docs:version "${PREV}" && cd ..
+
+          # Update the current docs label in docusaurus.config.ts
+          node -e "
+            const fs = require('fs');
+            const file = 'public/docusaurus.config.ts';
+            let c = fs.readFileSync(file, 'utf8');
+            // Replace: current: { label: 'X.Y.Z' with the new version
+            c = c.replace(
+              /(current:\s*\{[^}]*label:\s*')[^']*(')/s,
+              '\$1${NEW}\$2'
+            );
+            fs.writeFileSync(file, c);
+            console.log('Updated current.label to ${NEW}');
+          "
+
+      - name: Commit version bump
+        shell: bash
+        run: |
+          git add -A
+          git commit -m "chore: release v${{ steps.ver.outputs.version }}"
           git tag "${{ steps.ver.outputs.tag }}"
           git push origin HEAD:${{ github.ref_name }} --follow-tags

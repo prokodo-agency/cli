@@ -13,10 +13,12 @@ class MockPollTimeoutError extends Error {
 }
 
 const mockPoll: jest.Mock = jest.fn(async () => ({ runId: 'run-123', status: 'success' }));
-const mockLoadConfig: jest.Mock = jest.fn(() => ({
-  projectSlug: 'test-project',
-  verifyGlobs: ['src/**/*'],
-  timeout: 300,
+const mockResolveRunContext: jest.Mock = jest.fn(() => ({
+  projectType: 'n8n-node',
+  packageName: 'test-package',
+  source: undefined,
+  include: ['src'],
+  timeoutMs: 300_000,
 }));
 const mockResolveApiKey: jest.Mock = jest.fn(() => 'pk_test_12345678');
 const mockGetDefaultApiUrl: jest.Mock = jest.fn(() => 'https://test.invalid');
@@ -43,7 +45,9 @@ jest.mock('../lib/poll', () => ({
   poll: (...args: Parameters<typeof mockPoll>) => mockPoll(...args),
   PollTimeoutError: MockPollTimeoutError,
 }));
-jest.mock('../lib/config', () => ({ loadConfig: () => mockLoadConfig() }));
+jest.mock('../lib/resolveRunContext', () => ({
+  resolveRunContext: (...args: unknown[]) => mockResolveRunContext(...args),
+}));
 jest.mock('../lib/auth', () => ({ resolveApiKey: (k?: string) => mockResolveApiKey(k) }));
 jest.mock('../lib/platform', () => ({ getDefaultApiUrl: () => mockGetDefaultApiUrl() }));
 jest.mock('../lib/logger', () => ({
@@ -97,6 +101,8 @@ function makeProgram(): Command {
 interface RunVerifyOptions {
   json?: boolean;
   apiKey?: string;
+  file?: string;
+  type?: string;
   ref?: string;
   timeout?: string;
   noLogs?: boolean;
@@ -120,6 +126,8 @@ async function runVerify(opts: RunVerifyOptions = {}): Promise<{ exitCode?: numb
     registerVerifyCommand(program);
 
     const args = ['node', 'prokodo', 'verify'];
+    if (opts.file) args.push(opts.file);
+    if (opts.type) args.push('--type', opts.type);
     if (opts.ref) args.push('--ref', opts.ref);
     if (opts.timeout) args.push('--timeout', opts.timeout);
     if (opts.noLogs) args.push('--no-logs');
@@ -155,14 +163,13 @@ function createTmpProjectDir(): string {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('registerVerifyCommand — config error', () => {
-  it('calls fatal when loadConfig throws', async () => {
-    mockLoadConfig.mockImplementationOnce(() => {
-      throw new Error('No config found');
-    });
+describe('registerVerifyCommand — resolveRunContext error', () => {
+  it('calls fatal when --type flag is invalid', async () => {
     expect(mockFatal).not.toHaveBeenCalled();
     try {
-      await runVerify();
+      const program = makeProgram();
+      registerVerifyCommand(program);
+      await program.parseAsync(['node', 'prokodo', 'verify', '--type', 'invalid-type']);
     } catch {
       // expected
     }
@@ -176,10 +183,12 @@ describe('registerVerifyCommand — invalid timeout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     mockDebug.mockReset();
     mockFatal.mockImplementation((msg: string, code: number = 1) => {
@@ -192,10 +201,12 @@ describe('registerVerifyCommand — invalid timeout', () => {
   });
 
   it('calls fatal for negative timeout', async () => {
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     try {
       await runVerify({ timeout: '-1', cwd: tmpDir });
@@ -229,13 +240,13 @@ describe('registerVerifyCommand — no files found', () => {
     if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('calls fatal when no files match verifyGlobs', async () => {
+  it('calls fatal when no files match include list', async () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-empty-'));
     // No src/ directory → no matching files
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'empty-project',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      include: [],
+      timeoutMs: 300_000,
     });
     try {
       await runVerify({ cwd: tmpDir });
@@ -252,10 +263,12 @@ describe('registerVerifyCommand — success flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     mockResolveApiKey.mockReturnValue('pk_test_12345678');
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
@@ -306,7 +319,7 @@ describe('registerVerifyCommand — success flow', () => {
   it('passes ref option to the run request', async () => {
     await runVerify({ ref: 'main', cwd: tmpDir });
     expect(mockApiPost).toHaveBeenCalledWith(
-      '/api/cli/v1/verify/run',
+      '/api/cli/v1/verify/runs',
       expect.objectContaining({ ref: 'main' }),
     );
   });
@@ -351,10 +364,12 @@ describe('registerVerifyCommand — failure flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     mockResolveApiKey.mockReturnValue('pk_test_12345678');
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
@@ -398,10 +413,12 @@ describe('registerVerifyCommand — start run errors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     mockResolveApiKey.mockReturnValue('pk_test_12345678');
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
@@ -477,10 +494,12 @@ describe('registerVerifyCommand — poll timeout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     mockResolveApiKey.mockReturnValue('pk_test_12345678');
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
@@ -521,10 +540,12 @@ describe('registerVerifyCommand — result fetch errors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     mockResolveApiKey.mockReturnValue('pk_test_12345678');
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
@@ -552,10 +573,12 @@ describe('registerVerifyCommand — log streaming', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
     mockResolveApiKey.mockReturnValue('pk_test_12345678');
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
@@ -677,10 +700,12 @@ describe('registerVerifyCommand — collectFiles', () => {
   it('skips hidden files', async () => {
     tmpDir = createTmpProjectDir();
     fs.writeFileSync(path.join(tmpDir, 'src', '.hidden.ts'), 'hidden');
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
 
     await runVerify({ cwd: tmpDir });
@@ -697,10 +722,12 @@ describe('registerVerifyCommand — collectFiles', () => {
     tmpDir = createTmpProjectDir();
     fs.mkdirSync(path.join(tmpDir, 'src', 'node_modules'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, 'src', 'node_modules', 'dep.ts'), 'module');
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
 
     await runVerify({ cwd: tmpDir });
@@ -717,10 +744,12 @@ describe('registerVerifyCommand — collectFiles', () => {
     tmpDir = createTmpProjectDir();
     const largeContent = Buffer.alloc(600_000, 'x');
     fs.writeFileSync(path.join(tmpDir, 'src', 'large.ts'), largeContent);
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
 
     await runVerify({ cwd: tmpDir });
@@ -736,10 +765,12 @@ describe('registerVerifyCommand — collectFiles', () => {
 
   it('includes files with base64 content', async () => {
     tmpDir = createTmpProjectDir();
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
     });
 
     await runVerify({ cwd: tmpDir });
@@ -752,21 +783,540 @@ describe('registerVerifyCommand — collectFiles', () => {
     expect(b64Call.files[0]?.contentBase64).toBeTruthy();
   });
 
-  it('excludes files matching exclude glob patterns', async () => {
+  it('sends projectType in the request body', async () => {
     tmpDir = createTmpProjectDir();
-    // Use an exclude pattern to trigger the exclude.some callback
-    mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*', '!src/util.ts'],
-      timeout: 300,
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: '@my-scope/my-node',
+      source: 'https://github.com/user/repo.git',
+      include: ['src'],
+      timeoutMs: 300_000,
     });
 
     await runVerify({ cwd: tmpDir });
 
-    const exCallArgs = mockApiPost.mock.calls[0] as unknown[];
-    const exCall = exCallArgs[1] as { files: Array<{ path: string }> };
-    const paths = exCall.files.map((f) => f.path);
-    expect(paths.some((p) => p.includes('util.ts'))).toBe(false);
-    expect(paths.some((p) => p.includes('index.ts'))).toBe(true);
+    const callArgs = mockApiPost.mock.calls[0] as unknown[];
+    const body = callArgs[1] as { projectType: string; packageName: string; source: string };
+    expect(body.projectType).toBe('n8n-node');
+    expect(body.packageName).toBe('@my-scope/my-node');
+    expect(body.source).toBe('https://github.com/user/repo.git');
+  });
+});
+
+// ─── npm package mode ─────────────────────────────────────────────────────────────────
+
+describe('registerVerifyCommand — npm package mode', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+    mockApiPost.mockResolvedValue({ runId: 'run-npm', status: 'queued', creditsEstimated: 1 });
+    mockPoll.mockResolvedValue({ runId: 'run-npm', status: 'success' });
+    mockApiGet.mockImplementation((url: string) => {
+      if (url.includes('/result')) {
+        return Promise.resolve({
+          runId: 'run-npm',
+          passed: true,
+          summary: 'All checks passed',
+          checks: [],
+          creditsUsed: 1,
+        });
+      }
+      return Promise.resolve({ lines: [], nextCursor: '', done: true });
+    });
+  });
+
+  it('scoped package (@scope/name) is recognised as an npm ref, not a file', async () => {
+    const result = await runVerify({ file: '@scope/my-node', type: 'n8n-node' });
+    expect(mockFatal).not.toHaveBeenCalled();
+    expect(result.exitCode).toBe(0);
+  });
+
+  it('scoped package with version (@scope/name@1.2.3) is recognised as npm ref', async () => {
+    const result = await runVerify({ file: '@scope/my-node@1.2.3', type: 'n8n-node' });
+    expect(mockFatal).not.toHaveBeenCalled();
+    expect(result.exitCode).toBe(0);
+  });
+
+  it('bare package name is recognised as npm ref', async () => {
+    const result = await runVerify({ file: 'my-n8n-node', type: 'n8n-node' });
+    expect(mockFatal).not.toHaveBeenCalled();
+    expect(result.exitCode).toBe(0);
+  });
+
+  it('file path ending in .json is still blocked', async () => {
+    const result = await runVerify({ file: 'workflow.json', type: 'n8n-node' });
+    expect(mockFatal).toHaveBeenCalled();
+    expect(result.exitCode).toBe(2);
+  });
+
+  it('relative path ./foo is still blocked', async () => {
+    const result = await runVerify({ file: './workflow.json' });
+    expect(mockFatal).toHaveBeenCalled();
+    expect(result.exitCode).toBe(2);
+  });
+
+  it('requires --type when verifying an npm package', async () => {
+    const result = await runVerify({ file: '@scope/my-node' });
+    expect(mockFatal).toHaveBeenCalledWith(expect.stringContaining('--type is required'), 2);
+    expect(result.exitCode).toBe(2);
+  });
+
+  it('sends packageRef in the request body, no files', async () => {
+    await runVerify({ file: '@scope/my-node', type: 'n8n-node' });
+    const callArgs = mockApiPost.mock.calls[0] as unknown[];
+    const body = callArgs[1] as Record<string, unknown>;
+    expect(body['packageRef']).toBe('@scope/my-node');
+    expect(body['files']).toBeUndefined();
+    expect(body['projectType']).toBe('n8n-node');
+  });
+
+  it('does not call resolveRunContext in npm package mode', async () => {
+    await runVerify({ file: '@scope/my-node', type: 'n8n-node' });
+    expect(mockResolveRunContext).not.toHaveBeenCalled();
+  });
+
+  it('logs "Verifying npm package" info message', async () => {
+    await runVerify({ file: '@scope/my-node', type: 'n8n-node' });
+    expect(mockInfo).toHaveBeenCalledWith(expect.stringContaining('Verifying npm package'));
+  });
+
+  it('passes --ref to the request body when set', async () => {
+    await runVerify({ file: '@scope/my-node', type: 'n8n-node', ref: 'v1.2.3' });
+    const callArgs = mockApiPost.mock.calls[0] as unknown[];
+    const body = callArgs[1] as Record<string, unknown>;
+    expect(body['ref']).toBe('v1.2.3');
+  });
+
+  it('uses --timeout in npm package mode', async () => {
+    await runVerify({ file: '@scope/my-node', type: 'n8n-node', timeout: '120' });
+    const pollArgs = mockPoll.mock.calls[0] as unknown[];
+    const pollOpts = pollArgs[0] as { timeoutMs: number };
+    expect(pollOpts.timeoutMs).toBe(120_000);
+  });
+
+  it('rejects invalid --timeout in npm package mode', async () => {
+    const result = await runVerify({ file: '@scope/my-node', type: 'n8n-node', timeout: '-5' });
+    expect(mockFatal).toHaveBeenCalledWith(
+      expect.stringContaining('--timeout must be a positive number'),
+      2,
+    );
+    expect(result.exitCode).toBe(2);
+  });
+});
+
+// ─── n8n-workflow type gate ───────────────────────────────────────────────────
+
+describe('registerVerifyCommand — n8n-workflow type gate', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  it('calls fatal with "not yet supported" for --type n8n-workflow', async () => {
+    const result = await runVerify({ type: 'n8n-workflow' });
+    expect(mockFatal).toHaveBeenCalledWith(
+      expect.stringContaining('n8n-workflow verification is not yet supported'),
+      2,
+    );
+    expect(result.exitCode).toBe(2);
+  });
+});
+
+// ─── ctx.timeoutMs invalid from resolveRunContext ────────────────────────────
+
+describe('registerVerifyCommand — invalid ctx.timeoutMs from resolveRunContext', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tmpDir = createTmpProjectDir();
+    mockResolveApiKey.mockReturnValue('pk_test_12345678');
+    mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('calls fatal when resolveRunContext returns timeoutMs of 0', async () => {
+    mockResolveRunContext.mockReturnValueOnce({
+      projectType: 'n8n-node',
+      include: ['src'],
+      timeoutMs: 0,
+    });
+    const result = await runVerify({ cwd: tmpDir });
+    expect(mockFatal).toHaveBeenCalledWith(
+      expect.stringContaining('--timeout must be a positive number'),
+      2,
+    );
+    expect(result.exitCode).toBe(2);
+  });
+
+  it('calls fatal when resolveRunContext returns negative timeoutMs', async () => {
+    mockResolveRunContext.mockReturnValueOnce({
+      projectType: 'n8n-node',
+      include: ['src'],
+      timeoutMs: -1_000,
+    });
+    const result = await runVerify({ cwd: tmpDir });
+    expect(mockFatal).toHaveBeenCalledWith(
+      expect.stringContaining('--timeout must be a positive number'),
+      2,
+    );
+    expect(result.exitCode).toBe(2);
+  });
+});
+
+// ─── rejected run handling ────────────────────────────────────────────────────
+
+describe('registerVerifyCommand — rejected run', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tmpDir = createTmpProjectDir();
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
+    });
+    mockResolveApiKey.mockReturnValue('pk_test_12345678');
+    mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
+    mockApiPost.mockResolvedValue({ runId: 'run-rej', status: 'queued', creditsEstimated: 1 });
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('exits 1 and calls error when run is rejected (INSUFFICIENT_CREDITS, text mode)', async () => {
+    mockPoll.mockResolvedValue({
+      runId: 'run-rej',
+      status: 'rejected',
+      reasonCode: 'INSUFFICIENT_CREDITS',
+    });
+    const { exitCode } = await runVerify({ cwd: tmpDir });
+    expect(exitCode).toBe(1);
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Insufficient credits'));
+  });
+
+  it('exits 1 and calls error when run is rejected (NOT_IMPLEMENTED, text mode)', async () => {
+    mockPoll.mockResolvedValue({
+      runId: 'run-rej',
+      status: 'rejected',
+      reasonCode: 'NOT_IMPLEMENTED',
+    });
+    const { exitCode } = await runVerify({ cwd: tmpDir });
+    expect(exitCode).toBe(1);
+    expect(mockError).toHaveBeenCalled();
+  });
+
+  it('exits 1 and calls error when run is rejected (CONCURRENCY_CAP_REACHED, text mode)', async () => {
+    mockPoll.mockResolvedValue({
+      runId: 'run-rej',
+      status: 'rejected',
+      reasonCode: 'CONCURRENCY_CAP_REACHED',
+    });
+    const { exitCode } = await runVerify({ cwd: tmpDir });
+    expect(exitCode).toBe(1);
+    expect(mockError).toHaveBeenCalled();
+  });
+
+  it('exits 1 and calls error for unknown reasonCode (text mode)', async () => {
+    mockPoll.mockResolvedValue({
+      runId: 'run-rej',
+      status: 'rejected',
+      reasonCode: 'SOME_UNKNOWN_REASON',
+    });
+    const { exitCode } = await runVerify({ cwd: tmpDir });
+    expect(exitCode).toBe(1);
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('SOME_UNKNOWN_REASON'));
+  });
+
+  it('exits 1 with RUNNER_ERROR message when reasonCode is absent (text mode)', async () => {
+    mockPoll.mockResolvedValue({ runId: 'run-rej', status: 'rejected' });
+    const { exitCode } = await runVerify({ cwd: tmpDir });
+    expect(exitCode).toBe(1);
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('internal error'));
+  });
+
+  it('emits JSON with run_rejected when run is rejected (JSON mode)', async () => {
+    mockPoll.mockResolvedValue({
+      runId: 'run-rej',
+      status: 'rejected',
+      reasonCode: 'INSUFFICIENT_CREDITS',
+    });
+    const { exitCode } = await runVerify({ json: true, cwd: tmpDir });
+    expect(exitCode).toBe(1);
+    expect(mockEmitJson).toHaveBeenCalledWith(
+      expect.objectContaining({ error: 'run_rejected', reasonCode: 'INSUFFICIENT_CREDITS' }),
+    );
+  });
+});
+
+// ─── collectFiles: plain file in include list ────────────────────────────────
+
+describe('registerVerifyCommand — collectFiles: plain file in include', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockResolveApiKey.mockReturnValue('pk_test_12345678');
+    mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
+    mockApiPost.mockResolvedValue({ runId: 'run-123', status: 'queued', creditsEstimated: 1 });
+    mockPoll.mockResolvedValue({ runId: 'run-123', status: 'success' });
+    mockApiGet.mockResolvedValue({
+      runId: 'run-123',
+      passed: true,
+      summary: 'Passed',
+      checks: [],
+      creditsUsed: 1,
+    });
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('collects a single plain file listed in include', async () => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-plain-'));
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name":"test-pkg"}');
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      include: ['package.json'],
+      timeoutMs: 300_000,
+    });
+
+    await runVerify({ cwd: tmpDir });
+
+    const callArgs = mockApiPost.mock.calls[0] as unknown[];
+    const body = callArgs[1] as { files: Array<{ path: string }> };
+    expect(body.files.some((f) => f.path === 'package.json')).toBe(true);
+  });
+
+  it('skips a plain file larger than 500 KB in the include list', async () => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prokodo-plain-large-'));
+    const largeContent = Buffer.alloc(600_000, 'x');
+    fs.writeFileSync(path.join(tmpDir, 'big.json'), largeContent);
+    // Also write a small file so files.length > 0 after skip
+    fs.writeFileSync(path.join(tmpDir, 'small.json'), '{}');
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      include: ['big.json', 'small.json'],
+      timeoutMs: 300_000,
+    });
+
+    await runVerify({ cwd: tmpDir });
+
+    expect(mockWarn).toHaveBeenCalled();
+    const callArgs = mockApiPost.mock.calls[0] as unknown[];
+    const body = callArgs[1] as { files: Array<{ path: string }> };
+    expect(body.files.some((f) => f.path === 'big.json')).toBe(false);
+    expect(body.files.some((f) => f.path === 'small.json')).toBe(true);
+  });
+});
+
+// ─── collectFiles: recursive walkDir ─────────────────────────────────────────
+
+describe('registerVerifyCommand — collectFiles: recursive walkDir', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockResolveApiKey.mockReturnValue('pk_test_12345678');
+    mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
+    mockApiPost.mockResolvedValue({ runId: 'run-123', status: 'queued', creditsEstimated: 1 });
+    mockPoll.mockResolvedValue({ runId: 'run-123', status: 'success' });
+    mockApiGet.mockResolvedValue({
+      runId: 'run-123',
+      passed: true,
+      summary: 'Passed',
+      checks: [],
+      creditsUsed: 1,
+    });
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  afterEach(() => {
+    if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('recursively collects files from nested subdirectories', async () => {
+    tmpDir = createTmpProjectDir();
+    // Add a real nested subdirectory inside src/
+    fs.mkdirSync(path.join(tmpDir, 'src', 'helpers'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, 'src', 'helpers', 'utils.ts'), 'export const x = 1;');
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      include: ['src'],
+      timeoutMs: 300_000,
+    });
+
+    await runVerify({ cwd: tmpDir });
+
+    const callArgs = mockApiPost.mock.calls[0] as unknown[];
+    const body = callArgs[1] as { files: Array<{ path: string }> };
+    expect(body.files.some((f) => f.path.includes('helpers/utils.ts'))).toBe(true);
+  });
+});
+
+// ─── handleApiError: 503 service unavailable ─────────────────────────────────
+
+describe('registerVerifyCommand — handleApiError: 503', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tmpDir = createTmpProjectDir();
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
+    });
+    mockResolveApiKey.mockReturnValue('pk_test_12345678');
+    mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('handles 503 with "Service unavailable" message (text mode)', async () => {
+    mockApiPost.mockRejectedValue(
+      new ApiRequestError('Service temporarily down', 'service_unavailable', 503),
+    );
+    const { exitCode } = await runVerify({ cwd: tmpDir });
+    expect(exitCode).toBe(1);
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Service unavailable'));
+  });
+});
+
+// ─── local mode: valid --timeout covers timeoutSec branch ────────────────────
+
+describe('registerVerifyCommand — local mode with valid --timeout', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tmpDir = createTmpProjectDir();
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 120_000,
+    });
+    mockResolveApiKey.mockReturnValue('pk_test_12345678');
+    mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
+    mockApiPost.mockResolvedValue({ runId: 'run-123', status: 'queued', creditsEstimated: 1 });
+    mockPoll.mockResolvedValue({ runId: 'run-123', status: 'success' });
+    mockApiGet.mockResolvedValue({
+      runId: 'run-123',
+      passed: true,
+      summary: 'Passed',
+      checks: [],
+      creditsUsed: 1,
+    });
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('passes timeoutSec to resolveRunContext when --timeout is provided in local mode', async () => {
+    const { exitCode } = await runVerify({ timeout: '120', cwd: tmpDir });
+    expect(exitCode).toBe(0);
+    expect(mockResolveRunContext).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ timeoutSec: 120 }),
+    );
+  });
+});
+
+// ─── isNpmPackageArg: path-with-slashes is blocked ───────────────────────────
+
+describe('registerVerifyCommand — isNpmPackageArg: slash-containing paths', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  it('blocks a path containing forward slashes (e.g. "some/nested/file")', async () => {
+    const result = await runVerify({ file: 'some/nested/file' });
+    expect(mockFatal).toHaveBeenCalledWith(expect.stringContaining('not yet supported'), 2);
+    expect(result.exitCode).toBe(2);
+  });
+});
+
+// ─── printResult: failed check with message ───────────────────────────────────
+
+describe('registerVerifyCommand — printResult: failed check with message', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tmpDir = createTmpProjectDir();
+    mockResolveRunContext.mockReturnValue({
+      projectType: 'n8n-node',
+      packageName: 'test',
+      source: undefined,
+      include: ['src'],
+      timeoutMs: 300_000,
+    });
+    mockResolveApiKey.mockReturnValue('pk_test_12345678');
+    mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
+    mockApiPost.mockResolvedValue({ runId: 'run-123', status: 'queued', creditsEstimated: 1 });
+    mockPoll.mockResolvedValue({ runId: 'run-123', status: 'failed' });
+    mockFatal.mockImplementation((msg: string, code: number = 1) => {
+      throw new Error(`fatal:${code}:${msg}`);
+    });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('displays check message in info output when check has a message field', async () => {
+    mockApiGet.mockResolvedValue({
+      runId: 'run-123',
+      passed: false,
+      summary: 'Checks failed',
+      checks: [
+        { name: 'Security scan', passed: false, message: 'Found 2 critical vulnerabilities' },
+        { name: 'Lint', passed: true },
+      ],
+      creditsUsed: 1,
+    });
+    await runVerify({ cwd: tmpDir });
+    // info should have been called with a string containing the check message
+    const infoCalls = mockInfo.mock.calls.map((c) => String(c[0]));
+    expect(infoCalls.some((s) => s.includes('Found 2 critical vulnerabilities'))).toBe(true);
   });
 });

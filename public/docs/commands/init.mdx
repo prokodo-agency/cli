@@ -2,14 +2,24 @@
 id: init
 title: init
 sidebar_position: 3
-description: Initialize a prokodo project configuration with prokodo init — creates .prokodo/config.json in your project.
+description: Initialize an optional prokodo project configuration with prokodo init — creates .prokodo/config.json as an escape hatch for zero-config defaults.
 keywords:
-  [prokodo init, prokodo config, prokodo project setup, prokodo init command, .prokodo/config.json]
+  [
+    prokodo init,
+    prokodo config,
+    prokodo project setup,
+    prokodo init command,
+    .prokodo/config.json,
+    zero config,
+  ]
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # `prokodo init`
 
-Scaffold a `.prokodo/config.json` configuration file in the current project directory.
+Scaffold an optional `.prokodo/config.json` in the current project directory. Running `prokodo verify` works without this file — use `init` only when you want to pin a specific `projectType` or customise the `include` list.
 
 ```bash
 prokodo init [options]
@@ -17,54 +27,97 @@ prokodo init [options]
 
 ## Options
 
-| Flag            | Type    | Default | Description                                          |
-| --------------- | ------- | ------- | ---------------------------------------------------- |
-| `--slug <slug>` | string  | —       | Project slug (skips prompt)                          |
-| `--defaults`    | boolean | `false` | Accept all defaults; derive slug from directory name |
-| `--force`       | boolean | `false` | Overwrite existing config                            |
+| Flag            | Type    | Default | Description                                                              |
+| --------------- | ------- | ------- | ------------------------------------------------------------------------ |
+| `--type <type>` | string  | —       | Pin project type (currently only `n8n-node`; `n8n-workflow` coming soon) |
+| `--force`       | boolean | `false` | Overwrite existing config                                                |
 
 ## Behaviour
 
 1. Checks whether `.prokodo/config.json` already exists in the current directory
    - If it does and `--force` is not set → prints a warning and exits `0` without overwriting
    - If it does and `--force` is set → overwrites
-2. Determines the project slug:
-   - `--slug <value>` → uses value as-is
-   - `--defaults` or non-interactive stdin → derives from `basename(cwd)`, lowercased, non-alphanumeric chars replaced with `-`
-   - Interactive TTY (neither flag set) → prompts the user
-3. Writes `.prokodo/config.json` with sensible defaults
+2. Validates `--type` if provided (must be `n8n-node`; `n8n-workflow` is reserved for a future release)
+3. Writes `.prokodo/config.json`:
+   - Without `--type`: writes `{}` (fully automatic at verify time)
+   - With `--type`: writes `{ "projectType": "..." }`
 
 ## Output file
 
+Without `--type`:
+
+```json
+{}
+```
+
+With `--type n8n-node`:
+
 ```json
 {
-  "projectSlug": "my-project",
-  "verifyGlobs": ["src/**/*", "public/**/*"],
-  "timeout": 300
+  "projectType": "n8n-node"
 }
 ```
 
-| Field         | Description                                                                        |
-| ------------- | ---------------------------------------------------------------------------------- |
-| `projectSlug` | Identifies your project in the prokodo marketplace                                 |
-| `verifyGlobs` | Glob patterns (relative to config directory) for files to upload                   |
-| `timeout`     | Cloud verification timeout in seconds (can be overridden per-run with `--timeout`) |
+| Field         | Type         | Description                                                                        |
+| ------------- | ------------ | ---------------------------------------------------------------------------------- |
+| `projectType` | `"n8n-node"` | Overrides auto-detection at verify time (`n8n-workflow` reserved for future use)   |
+| `include`     | `string[]`   | Directories/files to upload (defaults to type-specific list if omitted)            |
+| `timeout`     | `number`     | Cloud verification timeout in seconds (can be overridden per-run with `--timeout`) |
 
 ## Examples
 
-```bash
-# Explicit slug
-prokodo init --slug my-project
+<Tabs groupId="output-mode">
+  <TabItem value="text" label="Text output">
 
-# Derive slug from directory name (great for CI)
-prokodo init --defaults
+```bash
+# No flags — fully auto-detected at verify time
+prokodo init
+```
+
+```
+ℹ projectType: (auto-detected at verify time)
+✓ Config created: .prokodo/config.json
+```
+
+```bash
+# Pin to n8n-node
+prokodo init --type n8n-node
+```
+
+```
+ℹ projectType: n8n-node
+✓ Config created: .prokodo/config.json
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+prokodo init --type n8n-node --json
+```
+
+```json
+{
+  "created": true,
+  "path": ".prokodo/config.json",
+  "config": {
+    "projectType": "n8n-node"
+  }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+```bash
+# Create config with automatic type detection (recommended for most projects)
+prokodo init
+
+# Pin project type
+prokodo init --type n8n-node
 
 # Overwrite an existing config
-prokodo init --slug new-slug --force
-
-# JSON mode — see the created config on stdout
-prokodo init --slug my-project --json
-# → { "created": true, "path": ".prokodo/config.json", "config": { … } }
+prokodo init --type n8n-node --force
 ```
 
 ## With version control
@@ -83,4 +136,4 @@ Only `credentials.json` (in `~/.config/prokodo`) should never be committed. Add 
 | Code | Cause                                                        |
 | ---- | ------------------------------------------------------------ |
 | `0`  | Config created (or already exists and `--force` was not set) |
-| `2`  | Empty slug derived or provided                               |
+| `2`  | Invalid `--type` value                                       |

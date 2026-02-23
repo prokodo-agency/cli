@@ -32,6 +32,18 @@ prokodo <command> [sub-command] [options]
 | [`credits`](credits) | —                             | Show credit balance             |
 | [`doctor`](doctor)   | —                             | Environment health-check        |
 
+## Global options
+
+All commands accept these options before the sub-command:
+
+| Flag              | Type    | Description                                            |
+| ----------------- | ------- | ------------------------------------------------------ |
+| `--api-key <key>` | string  | Override the API key for this invocation               |
+| `--api-url <url>` | string  | Override the API base URL                              |
+| `--json`          | boolean | Emit machine-readable JSON on `stdout` instead of text |
+| `--no-color`      | boolean | Disable all ANSI colour output                         |
+| `--verbose`       | boolean | Stream debug-level info to `stderr`                    |
+
 ## Global `help` command
 
 Commander ships a built-in `help` sub-command:

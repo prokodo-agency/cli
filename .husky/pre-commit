@@ -1,0 +1,4 @@
+pnpm lint:tsc
+pnpm lint:eslint
+pnpm format:check
+pnpm test

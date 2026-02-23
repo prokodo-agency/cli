@@ -13,6 +13,9 @@ keywords:
   ]
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # `prokodo doctor`
 
 Check your environment health before running verifications.
@@ -33,6 +36,9 @@ prokodo doctor [global options]
 
 ## Examples
 
+<Tabs groupId="output-mode">
+  <TabItem value="text" label="Text output">
+
 ```bash
 # Text output with colour-coded icons
 prokodo doctor
@@ -44,6 +50,9 @@ prokodo doctor
 ✗  .prokodo/config.json       Config not found in /Users/you/my-project
 ✓  API reachability           https://www.n8n-marketplace.prokodo.com → OK (v1.2.3)
 ```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
 
 ```bash
 # Machine-readable JSON — perfect for CI notifications
@@ -69,6 +78,9 @@ prokodo doctor --json
   ]
 }
 ```
+
+  </TabItem>
+</Tabs>
 
 ## Exit codes
 

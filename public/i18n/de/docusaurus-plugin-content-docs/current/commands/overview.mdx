@@ -16,52 +16,71 @@ keywords:
 
 # Befehlsübersicht
 
-Alle Befehle stehen als `prokodo <befehl>` zur Verfügung. Verwende `--help` auf jeder Ebene für ausführliche Hilfe:
+Die prokodo CLI stellt fünf Top-Level-Befehle bereit. Jeder ist auf einer eigenen Seite dokumentiert.
 
-```bash
-prokodo --help
-prokodo auth --help
-prokodo verify --help
+```
+prokodo <befehl> [unterbefehl] [Optionen]
 ```
 
-## Verfügbare Befehle
+## Befehle auf einen Blick
 
-| Befehl               | Beschreibung                                      |
-| -------------------- | ------------------------------------------------- |
-| [`auth`](auth)       | API-Schlüssel verwalten (login, logout, whoami)   |
-| [`init`](init)       | `.prokodo/config.json` in einem Projekt anlegen   |
-| [`verify`](verify)   | Dateien hochladen und Cloud-Verifizierung starten |
-| [`credits`](credits) | Aktuelles Guthaben und Nutzungshistorie anzeigen  |
-| [`doctor`](doctor)   | Umgebung, Zugangsdaten und Konnektivität prüfen   |
+| Befehl               | Unterbefehle                  | Beschreibung                         |
+| -------------------- | ----------------------------- | ------------------------------------ |
+| [`auth`](auth)       | `login` · `logout` · `whoami` | API-Schlüssel-Zugangsdaten verwalten |
+| [`init`](init)       | —                             | `.prokodo/config.json` anlegen       |
+| [`verify`](verify)   | —                             | Cloud-Verifizierung starten          |
+| [`credits`](credits) | —                             | Guthabenstand anzeigen               |
+| [`doctor`](doctor)   | —                             | Umgebungsgesundheits-Check           |
+
+## Globale Optionen
+
+Alle Befehle akzeptieren diese Optionen vor dem Unterbefehl:
+
+| Flag              | Typ     | Beschreibung                                   |
+| ----------------- | ------- | ---------------------------------------------- |
+| `--api-key <key>` | String  | API-Schlüssel für diesen Aufruf überschreiben  |
+| `--api-url <url>` | String  | API Basis-URL überschreiben                    |
+| `--json`          | Boolean | Maschinenlesbares JSON auf `stdout` statt Text |
+| `--no-color`      | Boolean | Alle ANSI-Farbausgaben deaktivieren            |
+| `--verbose`       | Boolean | Debug-Informationen auf `stderr` streamen      |
+
+## Globaler `help`-Befehl
+
+```bash
+prokodo help              # entspricht --help
+prokodo help auth         # Hilfe zu auth-Unterbefehlen
+prokodo help verify       # verify-Optionen
+```
 
 ## Exit-Codes
 
-| Code | Bedeutung                                                                   |
-| ---- | --------------------------------------------------------------------------- |
-| `0`  | Erfolg                                                                      |
-| `1`  | Bekannter Fehler (z. B. Verifizierung fehlgeschlagen, ungültiger Schlüssel) |
-| `2`  | Nutzungs- oder Konfigurationsfehler (z. B. fehlende Pflichtflags)           |
+Jeder Befehl folgt diesem Vertrag:
+
+| Code | Bedeutung                                                                                     |
+| ---- | --------------------------------------------------------------------------------------------- |
+| `0`  | Erfolg                                                                                        |
+| `1`  | Bekannter/erwarteter Fehler (z. B. Verifizierung fehlgeschlagen, doctor-Check fehlgeschlagen) |
+| `2`  | Nutzungsfehler, fehlende Konfiguration oder fatales Setup-Problem                             |
+
+Sicher in Skripten verwendbar:
+
+```bash
+prokodo verify && echo "Bestanden" || echo "Fehlgeschlagen"
+```
 
 ## JSON-Ausgabe
 
-Jeder Befehl unterstützt `--json`, um maschinenlesbare Ausgaben zu aktivieren:
+`--json` an **jeden** Befehl anhängen für maschinenlesbare Ausgabe auf `stdout`. Menschenlesbare Logs gehen weiterhin nach `stderr`, sodass sie unabhängig umgeleitet werden können:
 
 ```bash
-prokodo verify --json
-prokodo credits --json
-prokodo doctor --json
-```
-
-Im JSON-Modus gehen alle Fehler an stderr und alle strukturierten Daten an stdout. Das ermöglicht einfaches Piping:
-
-```bash
-prokodo doctor --json | jq '.checks[] | select(.status == "fail")'
+prokodo verify --json 2>/dev/null | jq .passed
+prokodo doctor --json 2>/dev/null | jq '[.checks[] | select(.passed == false)]'
 ```
 
 ## Umgebungsvariablen
 
-| Variable               | Entspricht                    |
-| ---------------------- | ----------------------------- |
-| `PROKODO_API_KEY`      | `--api-key`                   |
-| `PROKODO_PROJECT_SLUG` | `--project-slug` bei `verify` |
-| `PROKODO_TIMEOUT`      | `--timeout`                   |
+| Variable               | Beschreibung                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `PROKODO_API_KEY`      | API-Schlüssel — verwendet wenn kein `--api-key`-Flag oder Zugangsdatei vorhanden |
+| `PROKODO_API_BASE_URL` | Marketplace API Basis-URL überschreiben                                          |
+| `NO_COLOR`             | Alle ANSI-Farbausgaben deaktivieren                                              |

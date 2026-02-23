@@ -13,6 +13,9 @@ keywords:
   ]
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # `prokodo auth`
 
 Manage your prokodo API key credentials.
@@ -46,15 +49,31 @@ prokodo auth login --key <key>
 
 **Examples**
 
+<Tabs groupId="login-output">
+  <TabItem value="text" label="Text output">
+
 ```bash
 prokodo auth login --key pk_abc123xyz789
 ```
 
-```bash
-# JSON mode — useful for scripted provisioning
-prokodo auth login --key pk_abc123xyz789 --json
-# → { "authenticated": true, "keyHint": "••••••••xyz789" }
 ```
+✓ Authenticated successfully (••••••••xyz789)
+ℹ Credentials stored at: /Users/you/.config/prokodo/credentials.json
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+prokodo auth login --key pk_abc123xyz789 --json
+```
+
+```json
+{ "authenticated": true, "keyHint": "••••••••xyz789" }
+```
+
+  </TabItem>
+</Tabs>
 
 **Exit codes**
 
@@ -87,15 +106,42 @@ prokodo auth logout
 
 **Examples**
 
+<Tabs groupId="logout-output">
+  <TabItem value="text" label="Text output">
+
 ```bash
 prokodo auth logout
-# Text: ✓ Credentials removed.   OR   ℹ No credentials were stored.
 ```
+
+```
+✓ Credentials removed.
+```
+
+or when not logged in:
+
+```
+ℹ No credentials were stored.
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
 
 ```bash
 prokodo auth logout --json
-# → { "loggedOut": true }    OR    { "loggedOut": false }
 ```
+
+```json
+{ "loggedOut": true }
+```
+
+or:
+
+```json
+{ "loggedOut": false }
+```
+
+  </TabItem>
+</Tabs>
 
 ---
 
@@ -117,16 +163,31 @@ If none are found, exits `2` with instructions.
 
 **Examples**
 
+<Tabs groupId="whoami-output">
+  <TabItem value="text" label="Text output">
+
 ```bash
 prokodo auth whoami
-# API key: ••••••••xyz789
-# Source: credentials file
 ```
+
+```
+API key: ••••••••xyz789
+Source: credentials file
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
 
 ```bash
 PROKODO_API_KEY=pk_test prokodo auth whoami --json
-# → { "keyHint": "••••test" }
 ```
+
+```json
+{ "keyHint": "••••test" }
+```
+
+  </TabItem>
+</Tabs>
 
 ## Credentials file location
 

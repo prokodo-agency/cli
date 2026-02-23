@@ -4,9 +4,7 @@ import { Command } from 'commander';
 
 const mockLoadCredentials: jest.Mock = jest.fn(() => null);
 const mockLoadConfig: jest.Mock = jest.fn(() => ({
-  projectSlug: 'test-project',
-  verifyGlobs: ['src/**/*'],
-  timeout: 300,
+  projectType: 'n8n-node' as const,
 }));
 const mockGetDefaultApiUrl = jest.fn(() => 'https://test.invalid');
 const mockResolveApiKey: jest.Mock = jest.fn(() => 'pk_test_1234567890');
@@ -98,9 +96,7 @@ describe('registerDoctorCommand — basic smoke', () => {
     jest.clearAllMocks();
     mockLoadCredentials.mockReturnValue(null);
     mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+      projectType: 'n8n-node' as const,
     });
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
     mockResolveApiKey.mockReturnValue('pk_test_1234567890');
@@ -159,9 +155,7 @@ describe('registerDoctorCommand — credentials detection', () => {
     jest.clearAllMocks();
     mockLoadCredentials.mockReturnValue(null);
     mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+      projectType: 'n8n-node' as const,
     });
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
     mockResolveApiKey.mockReturnValue('pk_test_1234567890');
@@ -230,9 +224,7 @@ describe('registerDoctorCommand — config file check', () => {
 
   it('marks config check as passed when config loads successfully', async () => {
     mockLoadConfig.mockReturnValue({
-      projectSlug: 'my-proj',
-      verifyGlobs: ['src/**'],
-      timeout: 300,
+      projectType: 'n8n-node' as const,
     });
     await runDoctor({ json: true });
     const call = mockEmitJson.mock.calls[0]?.[0] as {
@@ -240,6 +232,17 @@ describe('registerDoctorCommand — config file check', () => {
     };
     const cfgCheck = call.checks.find((c) => c.name === '.prokodo/config.json');
     expect(cfgCheck?.passed).toBe(true);
+  });
+
+  it('shows "auto-detected" in config check detail when config has no projectType', async () => {
+    mockLoadConfig.mockReturnValue({});
+    await runDoctor({ json: true });
+    const call = mockEmitJson.mock.calls[0]?.[0] as {
+      checks: Array<{ name: string; passed: boolean; detail: string }>;
+    };
+    const cfgCheck = call.checks.find((c) => c.name === '.prokodo/config.json');
+    expect(cfgCheck?.passed).toBe(true);
+    expect(cfgCheck?.detail).toContain('auto-detected');
   });
 
   it('marks config check as failed when loadConfig throws', async () => {
@@ -260,9 +263,7 @@ describe('registerDoctorCommand — API reachability', () => {
     jest.clearAllMocks();
     mockLoadCredentials.mockReturnValue(null);
     mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+      projectType: 'n8n-node' as const,
     });
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
     mockResolveApiKey.mockReturnValue('pk_test_1234567890');
@@ -316,9 +317,7 @@ describe('registerDoctorCommand — auth key check', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+      projectType: 'n8n-node' as const,
     });
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
     mockResolveApiKey.mockReturnValue('pk_test_1234567890');
@@ -370,9 +369,7 @@ describe('registerDoctorCommand — exit code', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLoadConfig.mockReturnValue({
-      projectSlug: 'test',
-      verifyGlobs: ['src/**/*'],
-      timeout: 300,
+      projectType: 'n8n-node' as const,
     });
     mockGetDefaultApiUrl.mockReturnValue('https://test.invalid');
     mockResolveApiKey.mockReturnValue('pk_test_1234567890');
