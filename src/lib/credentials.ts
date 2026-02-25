@@ -17,6 +17,7 @@ export function loadCredentials(): StoredCredentials | null {
   if (!fs.existsSync(filePath)) return null;
 
   // Warn on sloppy permissions (unix only)
+  /* istanbul ignore next */
   if (process.platform !== 'win32') {
     try {
       const stat = fs.statSync(filePath);
