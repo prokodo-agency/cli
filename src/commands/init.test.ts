@@ -126,7 +126,7 @@ describe('registerInitCommand — basic creation', () => {
 
   it('calls success in text mode', async () => {
     await runInit({ cwd: tmpDir });
-    expect(mockSuccess).toHaveBeenCalled();
+    expect(mockSuccess).toHaveBeenCalledTimes(1);
   });
 
   it('emits JSON when --json flag is set', async () => {
@@ -167,7 +167,7 @@ describe('registerInitCommand — invalid --type', () => {
     } catch {
       // expected
     }
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
   });
 
   it('does not create config file on invalid type', async () => {

@@ -23,6 +23,17 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
 
+  // Hard-gate: CI fails if any metric drops below 100%.
+  // This turns coverage from a report into an enforced contract.
+  coverageThreshold: {
+    global: {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+  },
+
   // Per-test timeout: 15s (generous for poll tests with real timers)
   testTimeout: 15_000,
 };

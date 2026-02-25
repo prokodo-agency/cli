@@ -127,7 +127,7 @@ describe('registerCreditsCommand — API client setup', () => {
   it('resolves API key via resolveApiKey', async () => {
     mockResolveApiKey.mockReturnValue('pk_resolved_12345');
     await runCredits();
-    expect(mockResolveApiKey).toHaveBeenCalled();
+    expect(mockResolveApiKey).toHaveBeenCalledTimes(1);
     expect(MockApiClient).toHaveBeenCalledWith(
       expect.objectContaining({ apiKey: 'pk_resolved_12345' }),
     );

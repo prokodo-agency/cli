@@ -124,7 +124,7 @@ describe('auth login — with --key', () => {
 
   it('calls success in text mode on successful login', async () => {
     await runAuthCmd(['auth', 'login', '--key', 'pk_valid_12345678']);
-    expect(mockSuccess).toHaveBeenCalled();
+    expect(mockSuccess).toHaveBeenCalledTimes(1);
   });
 
   it('emits JSON when --json is set', async () => {
@@ -135,13 +135,13 @@ describe('auth login — with --key', () => {
   it('calls fatal when key shape is invalid', async () => {
     mockIsValidKeyShape.mockReturnValue(false);
     await runAuthCmd(['auth', 'login', '--key', '<bad-key>']);
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
   });
 
   it('calls fatal when API rejects the key', async () => {
     mockApiGet.mockRejectedValue(new Error('Unauthorized'));
     await runAuthCmd(['auth', 'login', '--key', 'pk_valid_12345678']);
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
   });
 
   it('uses PROKODO_API_KEY env var when no --key provided', async () => {
@@ -162,7 +162,7 @@ describe('auth login — with --key', () => {
     mockIsInteractive.mockReturnValue(false);
     try {
       await runAuthCmd(['auth', 'login']);
-      expect(mockFatal).toHaveBeenCalled();
+      expect(mockFatal).toHaveBeenCalledTimes(1);
     } finally {
       if (savedKey !== undefined) process.env['PROKODO_API_KEY'] = savedKey;
     }
@@ -179,7 +179,7 @@ describe('auth logout', () => {
   it('calls success when credentials file existed', async () => {
     mockDeleteCredentials.mockReturnValue(true);
     await runAuthCmd(['auth', 'logout']);
-    expect(mockSuccess).toHaveBeenCalled();
+    expect(mockSuccess).toHaveBeenCalledTimes(1);
   });
 
   it('calls info when no credentials were stored', async () => {

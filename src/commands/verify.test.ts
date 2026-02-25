@@ -173,7 +173,7 @@ describe('registerVerifyCommand — resolveRunContext error', () => {
     } catch {
       // expected
     }
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -213,7 +213,7 @@ describe('registerVerifyCommand — invalid timeout', () => {
     } catch {
       // expected
     }
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
   });
 
   it('calls fatal for non-numeric timeout', async () => {
@@ -222,7 +222,7 @@ describe('registerVerifyCommand — invalid timeout', () => {
     } catch {
       // expected
     }
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -253,7 +253,7 @@ describe('registerVerifyCommand — no files found', () => {
     } catch {
       // expected
     }
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -302,7 +302,7 @@ describe('registerVerifyCommand — success flow', () => {
 
   it('calls success in text mode when passed', async () => {
     await runVerify({ cwd: tmpDir });
-    expect(mockSuccess).toHaveBeenCalled();
+    expect(mockSuccess).toHaveBeenCalledTimes(1);
   });
 
   it('emits JSON with passed=true in JSON mode', async () => {
@@ -599,10 +599,8 @@ describe('registerVerifyCommand — log streaming', () => {
       return { runId: 'run-123', status: 'success' };
     });
 
-    // Return logs on the first logs call, then result
-    let getCallCount = 0;
+    // First mock call → /logs endpoint; remaining calls → result endpoint.
     mockApiGet.mockImplementation(async (url: string) => {
-      getCallCount++;
       if (url.includes('/logs')) {
         return {
           lines: [{ seq: 1, ts: '2024-01-01T00:00:00Z', level: 'info', msg: 'Test log line' }],
@@ -622,7 +620,8 @@ describe('registerVerifyCommand — log streaming', () => {
 
     await runVerify({ cwd: tmpDir });
     expect(mockLogLine).toHaveBeenCalled();
-    void getCallCount;
+    // The logs endpoint must have been hit at least once.
+    expect(mockApiGet).toHaveBeenCalledWith(expect.stringContaining('/logs'));
   });
 
   it('continues even when log streaming fails', async () => {
@@ -631,13 +630,12 @@ describe('registerVerifyCommand — log streaming', () => {
       return { runId: 'run-123', status: 'success' };
     });
 
-    let isFirstGet = true;
+    // The first call to the logs endpoint throws; subsequent calls return the result.
+    let logCallCount = 0;
     mockApiGet.mockImplementation(async (url: string) => {
       if (url.includes('/logs')) {
-        if (isFirstGet) {
-          isFirstGet = false;
-          throw new Error('Log streaming unavailable');
-        }
+        logCallCount++;
+        if (logCallCount === 1) throw new Error('Log streaming unavailable');
       }
       return {
         runId: 'run-123',
@@ -648,9 +646,10 @@ describe('registerVerifyCommand — log streaming', () => {
       };
     });
 
-    // Should not throw even though log streaming fails
+    // Should complete successfully even though log streaming threw on the first call.
     const { exitCode } = await runVerify({ cwd: tmpDir });
     expect(exitCode).toBe(0);
+    expect(logCallCount).toBeGreaterThanOrEqual(1);
   });
 
   it('does not call logLine when --no-logs is set', async () => {
@@ -847,13 +846,13 @@ describe('registerVerifyCommand — npm package mode', () => {
 
   it('file path ending in .json is still blocked', async () => {
     const result = await runVerify({ file: 'workflow.json', type: 'n8n-node' });
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
     expect(result.exitCode).toBe(2);
   });
 
   it('relative path ./foo is still blocked', async () => {
     const result = await runVerify({ file: './workflow.json' });
-    expect(mockFatal).toHaveBeenCalled();
+    expect(mockFatal).toHaveBeenCalledTimes(1);
     expect(result.exitCode).toBe(2);
   });
 
