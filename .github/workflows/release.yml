@@ -15,10 +15,10 @@ jobs:
   #
   # Uses npm Trusted Publishing (OIDC). No NPM_TOKEN secret required.
   # Prerequisite: configure this GitHub repo/workflow as a trusted publisher
-  # in npm package settings for @prokodo-agency/cli.
+  # in npm package settings for @prokodo/cli.
   #
   # Install:
-  #   npm install -g @prokodo-agency/cli
+  #   npm install -g @prokodo/cli
   # ──────────────────────────────────────────────────────────────────────────
   publish-npm:
     name: Publish — npmjs.com
@@ -122,7 +122,7 @@ jobs:
   # Job 2 — Publish to GitHub Packages (GITHUB_TOKEN — no secrets required)
   #
   # Install:
-  #   npm install @prokodo-agency/cli --registry https://npm.pkg.github.com
+  #   npm install @prokodo/cli --registry https://npm.pkg.github.com
   # ──────────────────────────────────────────────────────────────────────────
   publish-npm-gpr:
     name: Publish — GitHub Packages
@@ -285,7 +285,7 @@ jobs:
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          TARBALL="prokodo-agency-cli-${VERSION}.tgz"
+          TARBALL="prokodo-cli-${VERSION}.tgz"
           URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${TARBALL}"
           SHA256=$(curl -fsSL "$URL" | shasum -a 256 | awk '{print $1}')
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
