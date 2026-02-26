@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2](https://github.com/prokodo-agency/cli/compare/v0.1.1...v0.1.2) — 2026-02-26
+
+- fix: Bugfix release CI
+
 ## [0.1.1](https://github.com/prokodo-agency/cli/releases/tag/v0.1.1) — 2026-02-26
 
 - fix: Bugfix doc versions
