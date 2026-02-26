@@ -22,7 +22,8 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
       - '.github/workflows/**'
-      - 'public/**'
+      # public/** intentionally excluded: bump.yml always touches public/ and
+      # should not trigger the expensive test matrix. docs.yml handles that.
   pull_request:
     branches: [main, dev]
     paths:

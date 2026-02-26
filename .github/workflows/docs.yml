@@ -2,7 +2,10 @@ name: Deploy Docs
 
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
+    paths:
+      - 'public/**'
+      - '.github/workflows/docs.yml'
   workflow_dispatch: {}
 
 permissions:
@@ -24,20 +27,21 @@ jobs:
 
     steps:
       - name: Checkout CLI repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - uses: pnpm/action-setup@v4.2.0
         with:
           version: '10'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6.2.0
         with:
           node-version: '22'
 
       - name: Get pnpm store directory
+        shell: bash
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v4.2.2
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-docs-${{ hashFiles('public/pnpm-lock.yaml') }}
