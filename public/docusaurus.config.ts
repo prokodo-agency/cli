@@ -91,7 +91,7 @@ const config: Config = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '0.1.3',
+              label: '0.1.4',
               badge: true,
               banner: 'none',
             },
