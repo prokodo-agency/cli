@@ -1,0 +1,96 @@
+---
+id: credits
+title: credits
+sidebar_position: 5
+description: Aktuelles prokodo-Guthaben mit prokodo credits abrufen.
+keywords: [prokodo credits, prokodo Guthaben, prokodo credits Befehl, prokodo Konto]
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# `prokodo credits`
+
+Aktuelles Guthaben anzeigen.
+
+```bash
+prokodo credits [globale Optionen]
+```
+
+## Beschreibung
+
+Verbindet sich mit der prokodo API über den aufgelösten API-Schlüssel und gibt das aktuelle Guthaben aus.
+
+## Anforderungen
+
+Ein API-Schlüssel muss über eine der [Standardprioritätsquellen](auth#auth-whoami) konfiguriert sein:
+
+1. `--api-key` globales Flag
+2. `PROKODO_API_KEY` Umgebungsvariable
+3. `~/.config/prokodo/credentials.json`
+
+## Beispiele
+
+<Tabs groupId="output-mode">
+  <TabItem value="text" label="Textausgabe">
+
+```bash
+prokodo credits
+```
+
+```
+ℹ Guthaben: 42 credits
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+prokodo credits --json
+```
+
+```json
+{
+  "balance": 42,
+  "unit": "credit",
+  "stub": false
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## JSON-Ausgabeschema
+
+```json
+{
+  "balance": 42,
+  "unit": "credit",
+  "stub": false
+}
+```
+
+| Feld      | Typ       | Beschreibung                                        |
+| --------- | --------- | --------------------------------------------------- |
+| `balance` | `number`  | Aktuelles numerisches Guthaben                      |
+| `unit`    | `string`  | Einheit (immer `"credit"`)                          |
+| `stub`    | `boolean` | `true` wenn das Guthabensystem im Vorschaumodus ist |
+
+## In Skripten verwenden
+
+```bash
+# Workflow stoppen wenn Guthaben zu niedrig
+GUTHABEN=$(prokodo credits --json | jq .balance)
+if [[ "$GUTHABEN" -lt 5 ]]; then
+  echo "Warnung: Guthaben zu niedrig für Verifizierung"
+  exit 1
+fi
+```
+
+## Exit-Codes
+
+| Code | Ursache                         |
+| ---- | ------------------------------- |
+| `0`  | Guthaben erfolgreich abgerufen  |
+| `2`  | Kein API-Schlüssel konfiguriert |
+| `1`  | API-Anfrage fehlgeschlagen      |

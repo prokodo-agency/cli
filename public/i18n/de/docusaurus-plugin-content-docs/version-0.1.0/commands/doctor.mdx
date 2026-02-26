@@ -1,0 +1,126 @@
+---
+id: doctor
+title: doctor
+sidebar_position: 6
+description: Lokales prokodo-Setup mit prokodo doctor diagnostizieren — prüft Node-Version, Zugangsdaten, Konfiguration und Konnektivität.
+keywords:
+  [prokodo doctor, prokodo Diagnose, prokodo Umgebungscheck, prokodo doctor Befehl, prokodo Debug]
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# `prokodo doctor`
+
+Umgebungsgesundheit prüfen, bevor Verifizierungen gestartet werden.
+
+```bash
+prokodo doctor [globale Optionen]
+```
+
+## Durchgeführte Prüfungen
+
+| Prüfung                  | Was wird geprüft                                                 |
+| ------------------------ | ---------------------------------------------------------------- |
+| **Node-Version**         | Node.js ≥ 22 ist installiert                                     |
+| **API-Schlüssel**        | Mindestens eine Schlüsselquelle verfügbar (Flag / Env / Datei)   |
+| **.prokodo/config.json** | Gültige Konfigurationsdatei im aktuellen Verzeichnis vorhanden   |
+| **API-Erreichbarkeit**   | Der prokodo API Health-Endpunkt antwortet innerhalb von 10 Sek.  |
+| **API-Schlüssel gültig** | (Nur wenn Schlüssel vorhanden) Schlüssel wird von API akzeptiert |
+
+## Beispiele
+
+<Tabs groupId="output-mode">
+  <TabItem value="text" label="Textausgabe">
+
+```bash
+prokodo doctor
+```
+
+```
+✓  Node-Version               22.11.0 (erforderlich ≥ 22)
+✗  API-Schlüssel              Quelle: keine
+✗  .prokodo/config.json       Config nicht gefunden in /Users/du/mein-projekt
+✓  API-Erreichbarkeit         https://www.n8n-marketplace.prokodo.com → OK (v1.2.3)
+```
+
+  </TabItem>
+  <TabItem value="json" label="--json">
+
+```bash
+prokodo doctor --json
+```
+
+```json
+{
+  "passed": false,
+  "checks": [
+    { "name": "Node version", "passed": true, "detail": "22.11.0 (required ≥ 22)" },
+    { "name": "API key configured", "passed": false, "detail": "Source: none" },
+    {
+      "name": ".prokodo/config.json",
+      "passed": false,
+      "detail": "Config not found in /Users/du/mein-projekt"
+    },
+    {
+      "name": "API reachability",
+      "passed": true,
+      "detail": "https://www.n8n-marketplace.prokodo.com → OK (v1.2.3)"
+    }
+  ]
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## JSON-Ausgabeschema
+
+| Feld              | Typ                          | Beschreibung                      |
+| ----------------- | ---------------------------- | --------------------------------- |
+| `passed`          | `boolean`                    | `true` = alle Prüfungen bestanden |
+| `checks`          | `{ name, passed, detail }[]` | Einzelne Prüfergebnisse           |
+| `checks[].name`   | `string`                     | Name der Prüfung                  |
+| `checks[].passed` | `boolean`                    | `true` = Prüfung bestanden        |
+| `checks[].detail` | `string`                     | Details zur Prüfung               |
+
+## Exit-Codes
+
+| Code | Bedeutung                              |
+| ---- | -------------------------------------- |
+| `0`  | Alle Prüfungen bestanden               |
+| `1`  | Mindestens eine Prüfung fehlgeschlagen |
+
+:::tip
+`doctor` endet nie mit Exit-Code `2` — er ist darauf ausgelegt, immer eine Ausgabe zu erzeugen. In CI verwenden, um Probleme frühzeitig zu erkennen:
+
+```yaml
+- name: Umgebungscheck
+  run: prokodo doctor --json
+  continue-on-error: true # Ergebnis melden, Pipeline nicht stoppen
+```
+
+:::
+
+## In CI verwenden
+
+```yaml
+- name: prokodo doctor
+  run: |
+    AUSGABE=$(prokodo doctor --json)
+    echo "$AUSGABE" | jq .
+    echo "$AUSGABE" | jq -e '.passed'   # schlägt fehl wenn nicht alle Prüfungen bestanden
+```
+
+```bash
+# Fehlgeschlagene Prüfungen filtern
+prokodo doctor --json | jq '[.checks[] | select(.passed == false)]'
+```
+
+## Verbose-Modus
+
+`--verbose` für Debug-Details auf stderr während der Prüfungen hinzufügen:
+
+```bash
+prokodo doctor --verbose
+```

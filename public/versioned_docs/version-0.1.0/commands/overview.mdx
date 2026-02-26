@@ -1,0 +1,88 @@
+---
+id: overview
+title: Command Overview
+sidebar_position: 1
+description: Complete reference overview of all prokodo CLI commands — auth, init, verify, credits, and doctor.
+keywords:
+  [
+    prokodo CLI commands,
+    prokodo auth,
+    prokodo init,
+    prokodo verify,
+    prokodo CLI reference,
+    prokodo command list,
+  ]
+---
+
+# Command Overview
+
+The prokodo CLI exposes five top-level commands. Each is documented on its own page.
+
+```
+prokodo <command> [sub-command] [options]
+```
+
+## Commands at a glance
+
+| Command              | Sub-commands                  | What it does                    |
+| -------------------- | ----------------------------- | ------------------------------- |
+| [`auth`](auth)       | `login` · `logout` · `whoami` | Manage API key credentials      |
+| [`init`](init)       | —                             | Scaffold `.prokodo/config.json` |
+| [`verify`](verify)   | —                             | Run a cloud verification        |
+| [`credits`](credits) | —                             | Show credit balance             |
+| [`doctor`](doctor)   | —                             | Environment health-check        |
+
+## Global options
+
+All commands accept these options before the sub-command:
+
+| Flag              | Type    | Description                                            |
+| ----------------- | ------- | ------------------------------------------------------ |
+| `--api-key <key>` | string  | Override the API key for this invocation               |
+| `--api-url <url>` | string  | Override the API base URL                              |
+| `--json`          | boolean | Emit machine-readable JSON on `stdout` instead of text |
+| `--no-color`      | boolean | Disable all ANSI colour output                         |
+| `--verbose`       | boolean | Stream debug-level info to `stderr`                    |
+
+## Global `help` command
+
+Commander ships a built-in `help` sub-command:
+
+```bash
+prokodo help              # same as --help
+prokodo help auth         # auth sub-command help
+prokodo help verify       # verify options
+```
+
+## Exit codes
+
+Every command follows this contract:
+
+| Code | Meaning                                                                  |
+| ---- | ------------------------------------------------------------------------ |
+| `0`  | Success                                                                  |
+| `1`  | Known / expected failure (e.g. verification failed, doctor check failed) |
+| `2`  | Usage error, missing config, or fatal setup problem                      |
+
+This makes it safe to use in scripts:
+
+```bash
+prokodo verify && echo "Passed" || echo "Failed"
+```
+
+## JSON output
+
+Append <DocBadge label="--json" /> to **any** command for machine-readable output on `stdout`. Human-readable logs still go to `stderr`, so you can redirect them independently:
+
+```bash
+prokodo verify --json 2>/dev/null | jq .passed
+prokodo doctor --json 2>/dev/null | jq '[.checks[] | select(.passed == false)]'
+```
+
+## Environment variables
+
+| Variable               | Description                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `PROKODO_API_KEY`      | API key — used when no <DocBadge label="--api-key" /> flag or credentials file |
+| `PROKODO_API_BASE_URL` | Override the marketplace API base URL                                          |
+| `NO_COLOR`             | Disable all ANSI colour output                                                 |
