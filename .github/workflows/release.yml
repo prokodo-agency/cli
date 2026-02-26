@@ -26,6 +26,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # SLSA provenance attestation
+      attestations: write # required by actions/attest-build-provenance
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -83,11 +84,26 @@ jobs:
       # SLSA provenance — verifiable with:
       #   gh attestation verify <tarball> --repo prokodo-agency/cli
       - name: Attest build provenance
+        continue-on-error: true
         uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: ${{ steps.pack.outputs.tarball }}
 
+      - name: Check if version already exists on npmjs.com
+        id: npmjs-check
+        shell: bash
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "${NAME}@${VER}" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "exists=true"  >> "$GITHUB_OUTPUT"
+            echo "ℹ️ npmjs.com already has ${NAME}@${VER}; publish step will be skipped."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npmjs.com
+        if: steps.npmjs-check.outputs.exists != 'true'
         shell: bash
         # publishConfig in package.json points to GitHub Packages; override it here.
         run: npm publish --access public --registry https://registry.npmjs.org ${{ steps.pack.outputs.tarball }}
@@ -145,7 +161,23 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Check if version already exists on GitHub Packages
+        id: gpr-check
+        shell: bash
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "${NAME}@${VER}" version --registry https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "exists=true"  >> "$GITHUB_OUTPUT"
+            echo "ℹ️ GitHub Packages already has ${NAME}@${VER}; publish step will be skipped."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish to GitHub Packages
+        if: steps.gpr-check.outputs.exists != 'true'
         shell: bash
         run: pnpm publish --no-git-checks --access public
         env:
