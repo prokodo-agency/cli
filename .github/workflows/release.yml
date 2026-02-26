@@ -13,8 +13,9 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   # Job 1 — Publish to npmjs.com (public registry)
   #
-  # Requires a secret named NPM_TOKEN (classic Automation token from npmjs.com)
-  # stored in repo Settings → Secrets and variables → Actions.
+  # Uses npm Trusted Publishing (OIDC). No NPM_TOKEN secret required.
+  # Prerequisite: configure this GitHub repo/workflow as a trusted publisher
+  # in npm package settings for @prokodo-agency/cli.
   #
   # Install:
   #   npm install -g @prokodo-agency/cli
@@ -106,9 +107,8 @@ jobs:
         if: steps.npmjs-check.outputs.exists != 'true'
         shell: bash
         # publishConfig in package.json points to GitHub Packages; override it here.
-        run: npm publish --access public --registry https://registry.npmjs.org ${{ steps.pack.outputs.tarball }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # --provenance uses OIDC trusted publishing to npmjs.com.
+        run: npm publish --access public --provenance --registry https://registry.npmjs.org ${{ steps.pack.outputs.tarball }}
 
       # Share the tarball with downstream jobs (github-release, update-homebrew)
       - name: Upload tarball as workflow artifact
