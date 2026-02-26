@@ -3,7 +3,11 @@
   "version": "0.1.11",
   "description": "prokodo developer CLI — verify, inspect and manage your prokodo related services",
   "license": "MIT",
-  "author": "prokodo agency <hello@prokodo.com> (https://www.prokodo.com)",
+  "author": {
+    "name": "prokodo",
+    "email": "info@prokodo.com",
+    "url": "https://www.prokodo.com/?utm_source=npm&utm_medium=author&utm_campaign=prokodo_cli"
+  },
   "keywords": [
     "prokodo",
     "cli",
@@ -17,15 +21,14 @@
   "main": "dist/cli.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prokodo-agency/cli.git"
+    "url": "https://github.com/prokodo-agency/cli"
   },
-  "homepage": "https://www.prokodo.com/",
+  "homepage": "https://docs.cli.prokodo.com",
   "bugs": {
     "url": "https://github.com/prokodo-agency/cli/issues"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
+    "access": "public"
   },
   "bin": {
     "prokodo": "dist/cli.js"

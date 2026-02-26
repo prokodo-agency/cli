@@ -186,6 +186,38 @@ jobs:
             echo "Patch bump detected (${PREV} -> ${NEW}); skipping docs snapshot freeze."
           fi
 
+          # Guard: remove stale snapshots from the currently active minor line.
+          # Example: when current line is 0.1, remove 0.1.x frozen entries so the
+          # switcher does not show both "0.1" and "0.1.x".
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+
+            const currentMinor = process.argv[1];
+            const versionsFile = 'public/versions.json';
+            if (!fs.existsSync(versionsFile)) process.exit(0);
+
+            const versions = JSON.parse(fs.readFileSync(versionsFile, 'utf8'));
+            const keep = [];
+
+            for (const version of versions) {
+              if (typeof version === 'string' && version.startsWith(currentMinor + '.')) {
+                const docsDir = path.join('public', 'versioned_docs', `version-${version}`);
+                const sidebarFile = path.join('public', 'versioned_sidebars', `version-${version}-sidebars.json`);
+                const deFile = path.join('public', 'i18n', 'de', 'docusaurus-plugin-content-docs', `version-${version}.json`);
+
+                fs.rmSync(docsDir, { recursive: true, force: true });
+                fs.rmSync(sidebarFile, { force: true });
+                fs.rmSync(deFile, { force: true });
+                console.log(`Removed stale snapshot for ${version}`);
+              } else {
+                keep.push(version);
+              }
+            }
+
+            fs.writeFileSync(versionsFile, JSON.stringify(keep, null, 2) + '\n');
+          " "${NEW_MINOR}"
+
           # Update the current docs label in docusaurus.config.ts to major.minor
           node -e "
             const fs = require('fs');

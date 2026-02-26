@@ -135,15 +135,23 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - uses: pnpm/action-setup@v4.2.0
+      - name: 💿 Setup pnpm (v10)
+        uses: pnpm/action-setup@v4
         with:
-          version: '10'
+          version: 10
 
-      - uses: actions/setup-node@v6.2.0
+      - name: 🧰 Setup Node.js (v20) & npm registry cache
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org/'
+          node-version: 20
+          registry-url: "https://registry.npmjs.org/"
           cache: pnpm
+
+      - name: ⬆️ Upgrade npm to latest
+        run: |
+          npm -v
+          npm i -g npm@latest
+          npm -v
 
       - name: Get pnpm store directory
         shell: bash
@@ -156,7 +164,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
 
       - name: Build
