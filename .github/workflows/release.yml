@@ -9,6 +9,7 @@ on:
 # Minimal top-level permissions — each job declares only what it needs.
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
