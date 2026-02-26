@@ -41,7 +41,6 @@ jobs:
       - uses: actions/setup-node@v6.2.0
         with:
           node-version: '22'
-          registry-url: https://registry.npmjs.org
 
       - name: Get pnpm store directory
         shell: bash
@@ -108,9 +107,8 @@ jobs:
       - name: Publish to npmjs.com
         if: steps.npmjs-check.outputs.exists != 'true'
         shell: bash
-        # package.json publishConfig defaults to npmjs; publish with provenance via OIDC.
-        # --provenance uses OIDC trusted publishing to npmjs.com.
-        run: npm publish --access public --provenance --registry https://registry.npmjs.org
+        # Pure OIDC trusted publishing (no npm token auth). publishConfig points to npmjs.
+        run: npm publish --access public
 
       # Share the tarball with downstream jobs (github-release, update-homebrew)
       - name: Upload tarball as workflow artifact
