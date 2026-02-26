@@ -1,9 +1,10 @@
 name: Release
 
-# Triggers on version tags, e.g. v1.2.3
+# Best-practice flow: PRs validate via CI, merge to main with a release commit
+# (chore(release): vX.Y.Z) triggers full publishing/deployment.
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
 
 # Minimal top-level permissions — each job declares only what it needs.
 permissions:
@@ -23,6 +24,7 @@ jobs:
   publish-npm:
     name: Publish — npmjs.com
     runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
 
     permissions:
       contents: read
@@ -58,15 +60,15 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Verify tag matches package.json version
+      - name: Verify release version format
         shell: bash
         run: |
-          PKG=$(node -p "require('./package.json').version")
-          TAG=${GITHUB_REF_NAME#v}
-          if [ "$PKG" != "$TAG" ]; then
-            echo "❌  Tag (v${TAG}) does not match package.json (${PKG})" && exit 1
+          VER=$(node -p "require('./package.json').version")
+          if [[ ! "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ package.json version is not semver (X.Y.Z): ${VER}" >&2
+            exit 1
           fi
-          echo "✅  Version: ${PKG}"
+          echo "✅ Version: ${VER}"
 
       # Pack once — the same tarball is attested, published, and later
       # attached to the GitHub Release as a public download for Homebrew.
@@ -127,6 +129,7 @@ jobs:
   publish-npm-gpr:
     name: Publish — GitHub Packages
     runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
 
     permissions:
       contents: read
@@ -161,8 +164,22 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Check scope compatibility with GitHub Packages owner
+        id: gpr-scope
+        shell: bash
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          OWNER='${{ github.repository_owner }}'
+          if [[ "$NAME" == "@${OWNER}/"* ]]; then
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ Skipping GitHub Packages publish: package scope '$NAME' is not owned by '${OWNER}'."
+          fi
+
       - name: Check if version already exists on GitHub Packages
         id: gpr-check
+        if: steps.gpr-scope.outputs.allowed == 'true'
         shell: bash
         run: |
           NAME=$(node -p "require('./package.json').name")
@@ -177,7 +194,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to GitHub Packages
-        if: steps.gpr-check.outputs.exists != 'true'
+        if: steps.gpr-scope.outputs.allowed == 'true' && steps.gpr-check.outputs.exists != 'true'
         shell: bash
         run: pnpm publish --no-git-checks --access public
         env:
@@ -189,6 +206,7 @@ jobs:
   publish-docker:
     name: Publish — Docker (GHCR)
     runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
 
     permissions:
       contents: read
@@ -213,6 +231,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Compute Docker tag values from package.json
+        id: docker-ver
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          MAJOR=$(node -p "require('./package.json').version.split('.')[0]")
+          MINOR=$(node -p "(() => { const p=require('./package.json').version.split('.'); return p[0] + '.' + p[1]; })()")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "major=${MAJOR}"     >> "$GITHUB_OUTPUT"
+          echo "minor=${MINOR}"     >> "$GITHUB_OUTPUT"
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5.10.0
@@ -221,9 +250,9 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/prokodo-cli
             docker.io/prokodoagency/prokodo-cli
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=raw,value=${{ steps.docker-ver.outputs.version }}
+            type=raw,value=${{ steps.docker-ver.outputs.minor }}
+            type=raw,value=${{ steps.docker-ver.outputs.major }}
             type=raw,value=latest
 
       - name: Build and push
@@ -245,6 +274,7 @@ jobs:
     name: GitHub Release
     runs-on: ubuntu-latest
     needs: [publish-npm, publish-npm-gpr, publish-docker]
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
 
     permissions:
       contents: write
@@ -254,6 +284,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Ensure git tag exists for this version
+        id: rel
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}"         >> "$GITHUB_OUTPUT"
+
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
+            echo "ℹ️ Tag ${TAG} already exists on origin"
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TAG}" -m "Release ${TAG}"
+            git push origin "${TAG}"
+          fi
+
       - name: Download tarball artifact
         uses: actions/download-artifact@v4.2.1
         with:
@@ -262,7 +310,8 @@ jobs:
       - name: Create GitHub Release (attach tarball)
         uses: softprops/action-gh-release@v2.5.0
         with:
-          name: ${{ github.ref_name }}
+          tag_name: ${{ steps.rel.outputs.tag }}
+          name: ${{ steps.rel.outputs.tag }}
           generate_release_notes: true
           make_latest: true
           files: '*.tgz'
@@ -278,17 +327,22 @@ jobs:
     name: Update Homebrew tap
     runs-on: ubuntu-latest
     needs: github-release
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
 
     steps:
+      - uses: actions/checkout@v6.0.2
+
       - name: Compute release asset URL and sha256
         id: info
         shell: bash
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
           TARBALL="prokodo-cli-${VERSION}.tgz"
-          URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${TARBALL}"
+          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${TARBALL}"
           SHA256=$(curl -fsSL "$URL" | shasum -a 256 | awk '{print $1}')
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}"         >> "$GITHUB_OUTPUT"
           echo "url=${URL}"         >> "$GITHUB_OUTPUT"
           echo "sha256=${SHA256}"   >> "$GITHUB_OUTPUT"
 
@@ -314,5 +368,5 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/prokodo-cli.rb
-          git diff --staged --quiet || git commit -m "chore: update prokodo-cli to ${{ github.ref_name }}"
+          git diff --staged --quiet || git commit -m "chore: update prokodo-cli to ${{ steps.info.outputs.tag }}"
           git push
