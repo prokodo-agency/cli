@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.14](https://github.com/prokodo-agency/cli/compare/v0.1.7...v0.1.14) — 2026-02-26
+
+- hotfix: Prettier bug resolvement
+- fix: Bugfix release CI
+- fix: Bugfix release CI
+- fix: Bugfix release CI
+- fix: Bugfix release CI
+- fix: Bugfix release CI
+- fix: Bugfix release CI
+- fix: Bugfix release CI
+- fix: Bugfix release CI
+
 ## [0.1.13](https://github.com/prokodo-agency/cli/compare/v0.1.7...v0.1.13) — 2026-02-26
 
 - fix: Bugfix release CI
