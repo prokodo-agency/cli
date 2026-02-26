@@ -1,6 +1,6 @@
 {
   "name": "@prokodo/cli",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "prokodo developer CLI — verify, inspect and manage your prokodo related services",
   "license": "MIT",
   "author": "prokodo agency <hello@prokodo.com> (https://www.prokodo.com)",
