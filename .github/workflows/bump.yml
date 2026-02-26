@@ -66,17 +66,33 @@ jobs:
           TAG="${{ steps.ver.outputs.tag }}"
           DATE=$(date -u +%Y-%m-%d)
           REPO="https://github.com/${{ github.repository }}"
-          PREV=$(git describe --tags --abbrev=0 2>/dev/null || true)
+
+          # At this point the bump commit has NOT been made yet, so HEAD is
+          # still the commit that carries the previous release tag.  We find
+          # the most-recent tag reachable from HEAD (= the previous release).
+          PREV=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)
 
           if [ -n "$PREV" ]; then
             COMPARE_URL="${REPO}/compare/${PREV}...${TAG}"
-            LOG=$(git log "${PREV}..HEAD" --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+            # Only commits that are NEW since the previous tag.
+            # Exclude automated bump commits so they never pollute the next entry.
+            LOG=$(git log "${PREV}..HEAD" \
+              --pretty=format:"- %s" \
+              --no-merges \
+              2>/dev/null \
+              | grep -v '^- chore(release):' \
+              || true)
           else
             COMPARE_URL="${REPO}/releases/tag/${TAG}"
-            LOG=$(git log --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+            LOG=$(git log \
+              --pretty=format:"- %s" \
+              --no-merges \
+              2>/dev/null \
+              | grep -v '^- chore(release):' \
+              || true)
           fi
 
-          [ -z "$LOG" ] && LOG="- Initial release"
+          [ -z "$LOG" ] && LOG="- (no user-facing changes)"
 
           # Insert new entry right after the opening title line of CHANGELOG.md
           {
@@ -95,17 +111,27 @@ jobs:
           TAG="${{ steps.ver.outputs.tag }}"
           DATE=$(date -u +%Y-%m-%d)
           REPO="https://github.com/${{ github.repository }}"
-          PREV=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          PREV=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)
 
           if [ -n "$PREV" ]; then
             COMPARE_URL="${REPO}/compare/${PREV}...${TAG}"
-            LOG=$(git log "${PREV}..HEAD" --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+            LOG=$(git log "${PREV}..HEAD" \
+              --pretty=format:"- %s" \
+              --no-merges \
+              2>/dev/null \
+              | grep -v '^- chore(release):' \
+              || true)
           else
             COMPARE_URL="${REPO}/releases/tag/${TAG}"
-            LOG=$(git log --pretty=format:"- %s" --no-merges 2>/dev/null || true)
+            LOG=$(git log \
+              --pretty=format:"- %s" \
+              --no-merges \
+              2>/dev/null \
+              | grep -v '^- chore(release):' \
+              || true)
           fi
 
-          [ -z "$LOG" ] && LOG="- Initial release"
+          [ -z "$LOG" ] && LOG="- (no user-facing changes)"
 
           ENTRY=$(printf "## [%s](%s) — %s\n\n%s\n" "${VER}" "${COMPARE_URL}" "${DATE}" "${LOG}")
 

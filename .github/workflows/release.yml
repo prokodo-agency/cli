@@ -18,22 +18,21 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 2 — Publish to GitHub Packages (GITHUB_TOKEN — no secrets required)
+  # Job 2 — Publish to npmjs.com (public registry)
   #
-  # Uses the same pattern as @prokodo/ui: GITHUB_TOKEN is the auto-provisioned
-  # short-lived credential; no NPM_TOKEN or other secrets needed.
+  # Requires a secret named NPM_TOKEN (classic Automation token from npmjs.com)
+  # stored in repo Settings → Secrets and variables → Actions.
   #
   # Install:
-  #   npm install @prokodo/cli --registry https://npm.pkg.github.com
+  #   npm install -g @prokodo-agency/cli
   # ──────────────────────────────────────────────────────────────────────────
   publish-npm:
-    name: Publish — GitHub Packages
+    name: Publish — npmjs.com
     runs-on: ubuntu-latest
     needs: ci
 
     permissions:
       contents: read
-      packages: write # push to GitHub Packages
       id-token: write # SLSA provenance attestation
 
     steps:
@@ -46,7 +45,7 @@ jobs:
       - uses: actions/setup-node@v6.2.0
         with:
           node-version: '22'
-          registry-url: https://npm.pkg.github.com
+          registry-url: https://registry.npmjs.org
 
       - name: Get pnpm store directory
         shell: bash
@@ -92,11 +91,12 @@ jobs:
         with:
           subject-path: ${{ steps.pack.outputs.tarball }}
 
-      - name: Publish to GitHub Packages
+      - name: Publish to npmjs.com
         shell: bash
-        run: npm publish --access public ${{ steps.pack.outputs.tarball }}
+        # publishConfig in package.json points to GitHub Packages; override it here.
+        run: npm publish --access public --registry https://registry.npmjs.org ${{ steps.pack.outputs.tarball }}
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Share the tarball with downstream jobs (github-release, update-homebrew)
       - name: Upload tarball as workflow artifact
@@ -107,7 +107,61 @@ jobs:
           retention-days: 1
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 3 — Build Docker image and push to GitHub Container Registry
+  # Job 3a — Publish to GitHub Packages (GITHUB_TOKEN — no secrets required)
+  #
+  # Uses the same pattern as @prokodo/ui: GITHUB_TOKEN is the auto-provisioned
+  # short-lived credential; no NPM_TOKEN or other secrets needed.
+  #
+  # Install:
+  #   npm install @prokodo-agency/cli --registry https://npm.pkg.github.com
+  # ──────────────────────────────────────────────────────────────────────────
+  publish-npm-gpr:
+    name: Publish — GitHub Packages
+    runs-on: ubuntu-latest
+    needs: ci
+
+    permissions:
+      contents: read
+      packages: write # push to GitHub Packages
+      id-token: write # SLSA provenance attestation
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: pnpm/action-setup@v4.2.0
+        with:
+          version: '10'
+
+      - uses: actions/setup-node@v6.2.0
+        with:
+          node-version: '22'
+          registry-url: https://npm.pkg.github.com
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4.2.2
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to GitHub Packages
+        shell: bash
+        run: pnpm publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job 4 — Build Docker image and push to GitHub Container Registry
   # ──────────────────────────────────────────────────────────────────────────
   publish-docker:
     name: Publish — Docker (GHCR)
@@ -152,13 +206,15 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 4 — Create GitHub Release and attach the tarball as a public asset.
+  # Job 5 — Create GitHub Release and attach the tarball as a public asset.
   # The asset URL is what the Homebrew formula and direct downloaders use.
+  # Waits for both npm registries and Docker so the release is only created
+  # after all artifacts have been successfully published.
   # ──────────────────────────────────────────────────────────────────────────
   github-release:
     name: GitHub Release
     runs-on: ubuntu-latest
-    needs: [publish-npm, publish-docker]
+    needs: [publish-npm, publish-npm-gpr, publish-docker]
 
     permissions:
       contents: write
@@ -182,7 +238,7 @@ jobs:
           files: '*.tgz'
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 5 — Auto-update the Homebrew tap formula.
+  # Job 6 — Auto-update the Homebrew tap formula.
   # Points to the GitHub Release asset (public URL, no registry auth needed).
   #
   # TAP_GITHUB_TOKEN: classic PAT (repo scope) from any org member who has
