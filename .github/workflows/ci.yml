@@ -58,9 +58,7 @@ jobs:
   quality:
     name: Quality (format · tsc · eslint)
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_call' ||
-      !startsWith(github.event.head_commit.message, 'chore(release):')
+    if: "github.event_name == 'workflow_call' || !startsWith(github.event.head_commit.message, 'chore(release):')"
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -102,9 +100,7 @@ jobs:
   test:
     name: Build & Test — ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: |
-      github.event_name == 'workflow_call' ||
-      !startsWith(github.event.head_commit.message, 'chore(release):')
+    if: "github.event_name == 'workflow_call' || !startsWith(github.event.head_commit.message, 'chore(release):')"
     strategy:
       fail-fast: false
       matrix:
@@ -160,9 +156,7 @@ jobs:
     name: Docker — build smoke
     runs-on: ubuntu-latest
     needs: [quality, test]
-    if: |
-      github.event_name == 'workflow_call' ||
-      !startsWith(github.event.head_commit.message, 'chore(release):')
+    if: "github.event_name == 'workflow_call' || !startsWith(github.event.head_commit.message, 'chore(release):')"
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -192,9 +186,7 @@ jobs:
     name: Docs — build check
     runs-on: ubuntu-latest
     needs: [quality]
-    if: |
-      github.event_name == 'workflow_call' ||
-      !startsWith(github.event.head_commit.message, 'chore(release):')
+    if: "github.event_name == 'workflow_call' || !startsWith(github.event.head_commit.message, 'chore(release):')"
 
     steps:
       - uses: actions/checkout@v6.0.2
