@@ -27,7 +27,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # RELEASE_TOKEN must be a fine-grained PAT (Contents: write) whose
+          # owner is listed in the branch-protection bypass list.
+          # Create it at: Settings → Developer settings → Fine-grained tokens
+          # Then add it as a repo secret named RELEASE_TOKEN.
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # full history so git describe finds the previous tag
 
       - name: Configure git identity
