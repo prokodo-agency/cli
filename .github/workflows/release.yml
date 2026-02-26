@@ -44,6 +44,12 @@ jobs:
           node-version: '22'
           registry-url: https://registry.npmjs.org
 
+      - name: ⬆️ Upgrade npm to latest
+        run: |
+          npm -v
+          npm i -g npm@latest
+          npm -v
+
       - name: Get pnpm store directory
         shell: bash
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
