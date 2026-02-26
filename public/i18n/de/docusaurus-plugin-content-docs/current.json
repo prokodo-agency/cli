@@ -1,7 +1,7 @@
 {
   "version.label": {
-    "message": "Aktuell",
-    "description": "The label for version current"
+    "message": "0.1",
+    "description": "The label for version 0.1"
   },
   "sidebar.cliSidebar.category.Getting Started": {
     "message": "Erste Schritte",
