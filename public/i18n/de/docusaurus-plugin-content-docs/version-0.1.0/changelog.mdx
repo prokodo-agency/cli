@@ -1,0 +1,31 @@
+---
+id: changelog
+title: Änderungsprotokoll
+sidebar_position: 11
+description: Vollständige Versionshistorie der prokodo CLI — was sich in jeder Version geändert hat.
+keywords: [prokodo CLI Changelog, prokodo Release Notes, prokodo CLI Versionen, prokodo CLI Verlauf]
+---
+
+# Änderungsprotokoll
+
+Alle nennenswerten Änderungen an der prokodo CLI werden in dieser Datei dokumentiert.
+
+Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
+
+---
+
+## [0.1.0] – 2025-01-01
+
+### Hinzugefügt
+
+- Erster stabiler Release der prokodo CLI
+- `auth login / logout / whoami` — API-Schlüsselverwaltung
+- `init` — `.prokodo/config.json` per Projekt anlegen
+- `verify` — Dateien hochladen und Cloud-Verifizierung starten
+- `credits` — Guthaben und Nutzung abrufen
+- `doctor` — Umgebung, Zugangsdaten und API-Konnektivität prüfen
+- Globale Flags: `--api-key`, `--timeout`, `--json`, `--verbose`, `--no-color`
+- `PROKODO_API_KEY`-Umgebungsvariable für CI/CD-Nutzung
+- Vorhersehbare Exit-Codes (`0` Erfolg, `1` Fehler, `2` Nutzungsfehler)
+
+[0.1.0]: https://github.com/prokodo/cli/releases/tag/v0.1.0

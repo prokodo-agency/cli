@@ -1,0 +1,93 @@
+---
+id: quick-start
+title: Schnellstart
+sidebar_position: 2
+description: In weniger als fünf Minuten von null zu einer erfolgreichen Cloud-Verifizierung mit der prokodo CLI — Schritt-für-Schritt-Anleitung.
+keywords:
+  [prokodo CLI Schnellstart, prokodo CLI Tutorial, prokodo verify Anleitung, Einstieg prokodo CLI]
+---
+
+# Schnellstart
+
+Diese Anleitung führt in weniger als fünf Minuten von null zu einer erfolgreichen Cloud-Verifizierung.
+
+## Schritt 1 — Installieren
+
+```bash
+npm install -g @prokodo/cli
+```
+
+## Schritt 2 — API-Schlüssel holen
+
+1. Im [prokodo Marketplace](https://www.n8n-marketplace.prokodo.com) anmelden
+2. Zu **Konto → API-Schlüssel** navigieren
+3. **Neuen Schlüssel erstellen** klicken und den Wert kopieren — er beginnt mit `pk_`
+
+:::warning
+API-Schlüssel werden nur einmal angezeigt. Den Schlüssel sicher aufbewahren (z. B. in einem Passwortmanager oder als CI-Secret).
+:::
+
+## Schritt 3 — Authentifizieren
+
+```bash
+prokodo auth login --key pk_deinschluessel
+```
+
+Die CLI validiert den Schlüssel gegen die prokodo-API und speichert ihn in `~/.config/prokodo/credentials.json` mit `0600`-Berechtigungen.
+
+Gespeicherten Schlüssel bestätigen:
+
+```bash
+prokodo auth whoami
+# → API key: ••••••••abcd
+```
+
+## Schritt 4 — Projekt initialisieren
+
+Im Projektverzeichnis ausführen:
+
+```bash
+cd /pfad/zum/projekt
+prokodo init --slug mein-projekt
+```
+
+Dies erstellt `.prokodo/config.json`:
+
+```json
+{
+  "projectSlug": "mein-projekt",
+  "verifyGlobs": ["src/**/*", "public/**/*"],
+  "timeout": 300
+}
+```
+
+Diese Datei kann bedenkenlos in die Versionskontrolle eingecheckt werden.
+
+## Schritt 5 — Verifizieren
+
+```bash
+prokodo verify
+```
+
+Die CLI wird:
+
+1. Dateien passend zu `verifyGlobs` einsammeln
+2. Sie in die prokodo-Cloud hochladen
+3. Logs während des Laufs live streamen
+4. Das Ergebnis ausgeben und mit `0` (Bestanden) oder `1` (Fehlgeschlagen) beenden
+
+## Fertig!
+
+```bash
+# Guthaben nach dem Lauf prüfen
+prokodo credits
+
+# Vollständigen Umgebungscheck ausführen
+prokodo doctor --json | jq .
+```
+
+## Nächste Schritte
+
+- [Befehlsreferenz](../commands/overview) — vollständige Flag-Dokumentation für alle Befehle
+- [Globale Optionen](../global-options) — `--json`, `--api-key`, `--verbose` und mehr
+- [CI/CD-Integration](../ci-cd) — die CLI in GitHub Actions und anderen Pipelines verwenden
