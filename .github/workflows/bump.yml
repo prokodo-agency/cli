@@ -156,10 +156,37 @@ jobs:
           PREV="${{ steps.ver.outputs.prev_version }}"
           NEW="${{ steps.ver.outputs.version }}"
 
-          # Freeze the leaving version
-          cd public && pnpm docusaurus docs:version "${PREV}" && cd ..
+          PREV_MINOR="${PREV%.*}"
+          NEW_MINOR="${NEW%.*}"
 
-          # Update the current docs label in docusaurus.config.ts
+          # Freeze docs only when the minor line changes (minor/major bump).
+          # For patch bumps, keep one docs snapshot per minor line.
+          if [ "${PREV_MINOR}" != "${NEW_MINOR}" ]; then
+            echo "Freezing docs snapshot for ${PREV} (minor line changed: ${PREV_MINOR} -> ${NEW_MINOR})"
+            cd public && pnpm docusaurus docs:version "${PREV}" && cd ..
+
+            # Fix DE translation label for the generated frozen version.
+            # Docusaurus copies 'current' translation (Aktuell), which is wrong
+            # for frozen versions shown in the version switcher.
+            DE_FILE="public/i18n/de/docusaurus-plugin-content-docs/version-${PREV}.json"
+            if [ -f "${DE_FILE}" ]; then
+              node -e "
+                const fs = require('fs');
+                const f = process.argv[1];
+                const line = process.argv[2];
+                const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+                if (j['version.label']) {
+                  j['version.label'].message = line;
+                  j['version.label'].description = 'The label for version ' + line;
+                }
+                fs.writeFileSync(f, JSON.stringify(j, null, 2) + '\n');
+              " "${DE_FILE}" "${PREV_MINOR}"
+            fi
+          else
+            echo "Patch bump detected (${PREV} -> ${NEW}); skipping docs snapshot freeze."
+          fi
+
+          # Update the current docs label in docusaurus.config.ts to major.minor
           node -e "
             const fs = require('fs');
             const file = 'public/docusaurus.config.ts';
@@ -167,10 +194,10 @@ jobs:
             // Replace: current: { label: 'X.Y.Z' with the new version
             c = c.replace(
               /(current:\s*\{[^}]*label:\s*')[^']*(')/s,
-              '\$1${NEW}\$2'
+              '\$1${NEW_MINOR}\$2'
             );
             fs.writeFileSync(file, c);
-            console.log('Updated current.label to ${NEW}');
+            console.log('Updated current.label to ${NEW_MINOR}');
           "
 
       - name: Commit version bump
@@ -180,9 +207,6 @@ jobs:
           # Message prefix must match the ci.yml skip condition:
           # startsWith(head_commit.message, 'chore(release):')
           git commit -m "chore(release): v${{ steps.ver.outputs.version }}"
-          # Annotated tag (-a -m) is required: --follow-tags only pushes annotated
-          # tags. A lightweight tag is silently skipped → release.yml never fires.
-          git tag -a "${{ steps.ver.outputs.tag }}" -m "Release ${{ steps.ver.outputs.tag }}"
-          # IMPORTANT: GITHUB_TOKEN pushes do NOT trigger downstream workflows.
-          # release.yml only fires when a PAT (RELEASE_TOKEN) pushes the tag.
-          git push origin HEAD:${{ github.ref_name }} --follow-tags
+          # Push commit to main; release.yml triggers on main pushes and creates
+          # the vX.Y.Z tag itself when publishing.
+          git push origin HEAD:${{ github.ref_name }}
