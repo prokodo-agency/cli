@@ -1,0 +1,53 @@
+---
+id: intro
+title: Introduction
+slug: /
+sidebar_position: 1
+description: Official documentation for the prokodo CLI — authenticate, configure, verify and manage your prokodo projects directly from the terminal.
+keywords:
+  [prokodo CLI, CLI documentation, prokodo command line, n8n marketplace CLI, prokodo terminal]
+---
+
+import Admonition from '@theme/Admonition';
+
+# prokodo CLI
+
+The **prokodo CLI** is the official command-line interface for the [prokodo marketplace](https://www.n8n-marketplace.prokodo.com). It lets you authenticate, configure projects, upload files for cloud verification, and inspect your environment — all without leaving the terminal.
+
+## What can you do with it?
+
+| Command                       | Purpose                                           |
+| ----------------------------- | ------------------------------------------------- |
+| [`auth`](commands/auth)       | Store, rotate, and inspect API keys               |
+| [`init`](commands/init)       | Scaffold `.prokodo/config.json` in your project   |
+| [`verify`](commands/verify)   | Upload project files and run a cloud verification |
+| [`credits`](commands/credits) | Check your credit balance                         |
+| [`doctor`](commands/doctor)   | Diagnose your environment in one command          |
+
+## Design principles
+
+- **CI-first** — every command supports `--json` output and `PROKODO_API_KEY` env vars
+- **Predictable exit codes** — `0` success · `1` known failure · `2` usage / config error
+- **No surprises** — non-interactive mode is detected automatically; prompts only when stdin is a TTY
+- **Single binary** — built with [tsup](https://tsup.egoist.dev), all dependencies bundled, Node ≥ 22
+
+## Quick start
+
+```bash
+# 1. Install
+npm install -g @prokodo/cli
+
+# 2. Authenticate
+prokodo auth login --key pk_…
+
+# 3. Configure your project
+prokodo init --slug my-project
+
+# 4. Verify
+prokodo verify
+```
+
+<Admonition type="tip">
+  Run <code>prokodo doctor</code> at any time to get a full health-check of your environment,
+  credentials, and API connectivity.
+</Admonition>

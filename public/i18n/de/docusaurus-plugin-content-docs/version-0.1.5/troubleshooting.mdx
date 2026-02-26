@@ -1,0 +1,165 @@
+---
+id: troubleshooting
+title: Fehlerbehebung
+sidebar_position: 10
+description: Häufige prokodo CLI-Fehler beheben — fehlender API-Schlüssel, ungültige Konfiguration, Timeout überschritten, Berechtigungen und Node-Versionsprobleme.
+keywords:
+  [
+    prokodo Fehlerbehebung,
+    prokodo CLI Fehler,
+    prokodo Fehler beheben,
+    prokodo API-Schlüssel Fehler,
+    prokodo CLI Debug,
+  ]
+---
+
+# Fehlerbehebung
+
+## Häufige Fehler
+
+### `No API key configured`
+
+**Fehlermeldung:**
+
+```
+✗ No API key configured.
+  Run `prokodo auth login --key <key>` or set PROKODO_API_KEY.
+```
+
+**Ursachen & Lösungen:**
+
+| Ursache                                     | Lösung                                         |
+| ------------------------------------------- | ---------------------------------------------- |
+| Noch nie `auth login` ausgeführt            | `prokodo auth login --key pk_…` ausführen      |
+| In CI, aber Secret nicht gesetzt            | `PROKODO_API_KEY` in der Pipeline setzen       |
+| Berechtigungen der Zugangsdatendatei falsch | `chmod 600 ~/.config/prokodo/credentials.json` |
+
+---
+
+### `No .prokodo/config.json found`
+
+**Fehlermeldung:**
+
+```
+✗ No .prokodo/config.json found in /pfad/zum/verzeichnis.
+  Run `prokodo init --slug <slug>` to create one.
+```
+
+**Ursachen & Lösungen:**
+
+| Ursache                              | Lösung                                        |
+| ------------------------------------ | --------------------------------------------- |
+| Falsches Verzeichnis                 | `cd /richtiges/projekt` und erneut ausführen  |
+| `prokodo init` noch nicht ausgeführt | `prokodo init --slug mein-projekt` ausführen  |
+| `--cwd` zeigt auf falschen Pfad      | `--cwd` weglassen oder korrekten Pfad angeben |
+
+---
+
+### `Invalid API key shape`
+
+**Fehlermeldung:**
+
+```
+✗ Invalid API key: must start with pk_.
+```
+
+**Lösung:** API-Schlüssel im prokodo-Dashboard überprüfen. Sicherstellen, dass kein Leerzeichen vorangestellt ist oder Anführungszeichen enthalten sind:
+
+```bash
+# Korrekt
+prokodo auth login --key pk_abc123
+
+# Falsch (mit Anführungszeichen als Teil des Werts)
+prokodo auth login --key "pk_abc123"  # Anführungszeichen werden von der Shell für Sie entfernt
+```
+
+---
+
+### `Invalid timeout`
+
+**Fehlermeldung:**
+
+```
+✗ Invalid timeout: must be a positive integer.
+```
+
+**Lösung:** `timeout` in der Konfiguration muss eine positive ganze Zahl (Sekunden) sein:
+
+```json
+{ "timeout": 300 }
+```
+
+---
+
+### `Verification timed-out`
+
+**Fehlermeldung:**
+
+```
+✗ Verification timed-out after 300s.
+```
+
+**Lösungen:**
+
+- `timeout` in `.prokodo/config.json` erhöhen (z. B. `600`)
+- Zu viele Dateien? `verifyGlobs` anpassen, um nicht benötigte Dateien auszuschließen:
+  ```json
+  { "verifyGlobs": ["src/**/*", "!**/*.test.*"] }
+  ```
+
+---
+
+### `API unreachable`
+
+**Fehlermeldung:**
+
+```
+✗ Unable to reach api.prokodo.com.
+```
+
+**Schritte zur Diagnose:**
+
+```bash
+# Konnektivität prüfen
+curl -I https://api.prokodo.com/health
+
+# Doctor-Prüfung mit JSON-Details
+prokodo doctor --json | jq '.checks[] | select(.name | test("Erreichbarkeit"))'
+```
+
+**Häufige Ursachen:** Firewall-Regeln, Unternehmensproxies, DNS-Auflösungsfehler.
+
+---
+
+### `Node version too old`
+
+**Fehlermeldung:**
+
+```
+✗ Node.js 18.x detected. prokodo CLI requires Node.js ≥ 22.
+```
+
+**Lösung mit nvm:**
+
+```bash
+nvm install 22
+nvm use 22
+nvm alias default 22
+prokodo --version  # Klappen prüfen
+```
+
+---
+
+## Diagnosebefehl
+
+Immer zuerst `prokodo doctor` ausführen:
+
+```bash
+prokodo doctor --json
+```
+
+Dies überprüft alle häufigen Probleme auf einmal und zeigt die Ursache.
+
+## Support
+
+Falls keine Lösung gefunden wird, das GitHub-Issue-Tracker mit der Ausgabe von `prokodo doctor --json` öffnen.

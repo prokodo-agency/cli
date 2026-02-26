@@ -1,0 +1,59 @@
+---
+id: versions
+title: Versionen & Releasestrategie
+sidebar_position: 12
+description: Versionshistorie, npm-Release-Rhythmus und Upgrade-Anleitungen für die prokodo CLI.
+keywords: [prokodo CLI Versionen, prokodo CLI npm, prokodo CLI Upgrade, prokodo Semantic Versioning]
+---
+
+# Versionen & Releasestrategie
+
+## Versionierungsschema
+
+Die prokodo CLI folgt [Semantic Versioning 2.0.0](https://semver.org/lang/de/):
+
+| Segment             | Wann erhöhen                                     |
+| ------------------- | ------------------------------------------------ |
+| **Major** (`x.0.0`) | Breaking Changes in CLI-Flags oder Ausgabeformat |
+| **Minor** (`0.x.0`) | Neue Befehle oder Flags (abwärtskompatibel)      |
+| **Patch** (`0.0.x`) | Bugfixes, Dokumentationsverbesserungen           |
+
+## Release-Prozess
+
+1. Änderungen werden auf `main` gemergt
+2. CI führt Tests und Linting aus
+3. Neue Version auf npm publisht: `npm publish --access public`
+4. GitHub Release mit Changelog-Zusammenfassung erstellt
+5. `prokodo-cli/public/docs/changelog.mdx` automatisch aktualisiert
+
+## Spezifische Version installieren
+
+```bash
+npm install -g @prokodo/cli@0.1.0
+```
+
+```bash
+pnpm add -g @prokodo/cli@0.1.0
+```
+
+## Version prüfen
+
+```bash
+prokodo --version
+```
+
+## Upgrade
+
+```bash
+npm update -g @prokodo/cli
+```
+
+## Node.js-Kompatibilität
+
+| prokodo CLI | Node.js |
+| ----------- | ------- |
+| `0.1.x`     | ≥ 22    |
+
+## Alle Releases auf npm
+
+[npmjs.com/package/@prokodo/cli](https://www.npmjs.com/package/@prokodo/cli)
