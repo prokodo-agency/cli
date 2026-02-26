@@ -151,6 +151,12 @@ jobs:
         shell: bash
         run: |
           git add -A
-          git commit -m "chore: release v${{ steps.ver.outputs.version }}"
-          git tag "${{ steps.ver.outputs.tag }}"
+          # Message prefix must match the ci.yml skip condition:
+          # startsWith(head_commit.message, 'chore(release):')
+          git commit -m "chore(release): v${{ steps.ver.outputs.version }}"
+          # Annotated tag (-a -m) is required: --follow-tags only pushes annotated
+          # tags. A lightweight tag is silently skipped → release.yml never fires.
+          git tag -a "${{ steps.ver.outputs.tag }}" -m "Release ${{ steps.ver.outputs.tag }}"
+          # IMPORTANT: GITHUB_TOKEN pushes do NOT trigger downstream workflows.
+          # release.yml only fires when a PAT (RELEASE_TOKEN) pushes the tag.
           git push origin HEAD:${{ github.ref_name }} --follow-tags

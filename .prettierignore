@@ -3,3 +3,7 @@ coverage/
 node_modules/
 pnpm-lock.yaml
 LICENSE
+# public/ is a separate Docusaurus sub-project; its generated files
+# (changelog.mdx, versioned_docs/, versions.json) are not formatted by
+# the root prettier config.
+public/
